@@ -1,7 +1,11 @@
 import { StyleSheet, Text, View, Button } from 'react-native';
-
+import CustomHeader from "../components/CustomHeader";
 const ProfileScreen = ({ navigation, route }) => {
-    return <Text>Profile</Text>;
+    return (
+        <View>
+            <CustomHeader />
+        </View>
+    );
 };
 
 export default ProfileScreen;

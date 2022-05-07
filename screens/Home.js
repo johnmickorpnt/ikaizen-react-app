@@ -1,16 +1,12 @@
-import { StyleSheet, Text, View, Button, FlatList, TouchableHighlight, Image, TouchableOpacity, ScrollView } from 'react-native';
+import { StyleSheet, Text, View, Button, FlatList, TextInput, TouchableHighlight, Image, TouchableOpacity, ScrollView } from 'react-native';
 import React, { useState, useEffect } from 'react';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useFonts } from '@expo-google-fonts/inter';
 
+import { useFonts } from '@expo-google-fonts/inter';
+import CustomHeader from '../components/CustomHeader';
 
 const api_url = "http://192.168.254.100:8000";
 const HomeScreen = ({ navigation }) => {
     const [feed, setFeed] = useState();
-    let [fontsLoaded] = useFonts({
-        'open-sans': require('../assets/fonts/OpenSans-Regular.ttf'),
-        'open-sans-bold': require('../assets/fonts/OpenSans-Bold.ttf'),
-    });
 
     useEffect(() => {
         // Update the document title using the browser API
@@ -25,8 +21,6 @@ const HomeScreen = ({ navigation }) => {
             .catch(error => console.error(error))
     }, []);
     return (
-
-
         <View style={styles.container}>
             <FlatList data={feed}
                 keyExtractor={(item) => item.product_id}
@@ -50,32 +44,11 @@ const HomeScreen = ({ navigation }) => {
                         </View>
                     </TouchableOpacity>
                 )}
-                ListHeaderComponent={header(navigation)}
+                ListHeaderComponent={<CustomHeader navigation={navigation}/>}
             />
         </View>
     );
 };
-
-const header = (navigation) => {
-    return (
-        <View style={{ marginVertical: 20 }}>
-            <Image
-                style={styles.mainLogo}
-                source={{
-                    uri: "http://192.168.254.100:8000/images/logo1-1.png",
-                }}
-            />
-            <View style={{ padding: 10, flex: 1, flexDirection: "column", justifyContent: "center"}}>
-                <Text style={{ fontSize: 21, textAlign: "center", fontFamily:"open-sans-bold" }}>
-                    You can check our products here
-                </Text>
-                <TouchableOpacity style={styles.shopBtn} onPress={() => { navigation.navigate("Shop") }}>
-                    <Text style={{ color: "white", textAlign: "center", fontFamily:"open-sans" }}>Shop Now!</Text>
-                </TouchableOpacity>
-            </View>
-        </View>
-    );
-}
 
 const styles = StyleSheet.create({
     container: {
@@ -118,7 +91,7 @@ const styles = StyleSheet.create({
         backgroundColor: "#FF1818",
         width: "100%",
         padding: 10,
-        borderRadius:5
+        borderRadius: 5
     },
     mainLogo: {
         backgroundColor: "#FFC300",
