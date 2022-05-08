@@ -1,10 +1,7 @@
 import { StyleSheet, Text, View, Button, FlatList, TouchableHighlight, TextInput, Image, TouchableOpacity, ScrollView, RefreshControl, ActivityIndicator, SafeAreaView } from 'react-native';
 import React, { useState, useEffect, useLayoutEffect } from 'react';
-import { Table, TableWrapper, Row, Rows, Col, Cols, Cell } from 'react-native-table-component';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import BouncyCheckbox from "react-native-bouncy-checkbox";
-import Collapsible from 'react-native-collapsible';
-import Accordion from 'react-native-collapsible/Accordion';
+import SelectDropdown from 'react-native-select-dropdown';
 const api_url = "http://192.168.254.100:8000";
 
 const CheckoutScreen = ({ navigation, route }) => {
@@ -14,6 +11,7 @@ const CheckoutScreen = ({ navigation, route }) => {
     const [toggleCheckBox, setToggleCheckBox] = useState(false);
     const [activeProd, setActive] = useState([]);
     const [total, setTotal] = useState();
+    const [addresses, setAddresses] = useState();
     const wait = (timeout) => {
         return new Promise(resolve => setTimeout(resolve, timeout));
     }
@@ -35,8 +33,9 @@ const CheckoutScreen = ({ navigation, route }) => {
         })
             .then((re) => re.json())
             .then((re) => {
-                setData(re);
-                setTotal(compute(re));
+                setData(re[0]);
+                setAddresses(re[1]);
+                setTotal(compute(re[0]));
             })
             .catch(error => console.error(error));
     }
@@ -51,8 +50,9 @@ const CheckoutScreen = ({ navigation, route }) => {
             return false;
         if (total === "undefined")
             return false;
+        if (addresses === "undefined")
+            return false;
 
-        console.log(total);
     }, [data, total]);
 
     const compute = (d) => {
@@ -62,23 +62,57 @@ const CheckoutScreen = ({ navigation, route }) => {
         }
         return "₱" + t.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
     }
-
+    const header = () => {
+        return (
+            <View style={{ flex: 1, flexDirection: "row", justifyContent: "center" }}>
+                {addresses !== 'undefined' && addresses.length >= 1 ?
+                    (<SelectDropdown
+                        buttonStyle={{ borderWidth: 1, borderRadius: 5, height: 40, minWidth: "95%", marginTop: 12 }}
+                        data={addresses}
+                        onSelect={(selectedItem, index) => {
+                            console.log(selectedItem, index)
+                        }}
+                        buttonTextAfterSelection={(selectedItem, index) => {
+                            // text represented after item is selected
+                            // if data array is an array of objects then return selectedItem.property to render after item is selected
+                            return selectedItem
+                        }}
+                        rowTextForSelection={(item, index) => {
+                            // text represented for each item in dropdown
+                            // if data array is an array of objects then return item.property to represent item in dropdown
+                            return item
+                        }}
+                        renderDropdownIcon={downIcon}
+                        defaultButtonText={"Address..."}
+                    />) :
+                    (<Text style={{ fontWeight: "bold", fontSize: 16 }}>No Address. Please go to your profile and add a delivery address.</Text>)
+                }
+            </View>
+        );
+    }
+    const downIcon = () => {
+        return <Ionicons name={"chevron-down-outline"} size={20} color={"black"} />
+    }
     const footer = (p) => {
         return (
-            <View style={{ display: "flex", flex: 1, flexDirection: "column", justifyContent: "center", width: "100%", alignItems: "center", marginTop:"auto"}}>
-                <View style={{ width: "100%", paddingHorizontal: 15, marginVertical: 5 }}>
-                    <Text style={{ textAlign: "right", width: "100%" }}>
-                        SUBTOTAL: {"\n"}
-                        <Text style={{ fontWeight: "bold", color: "#FF1818", fontSize: 21 }}>
-                            {total}
+            <View>
+                <View style={{ flex: 1, justifyContent: "center", alignItems: "center", padding: 5 }}>
+                    <View style={{ width: "100%", paddingHorizontal: 15, marginVertical: 5 }}>
+                        <Text style={{ textAlign: "right", width: "100%" }}>
+                            SUBTOTAL: {"\n"}
+                            <Text style={{ fontWeight: "bold", color: "#FF1818", fontSize: 21 }}>
+                                {total}
+                            </Text>
                         </Text>
-                    </Text>
+                    </View>
+                    <TouchableOpacity style={(addresses.length>=1) ? (styles.button) : (styles.disabledButton)}
+                        onPress={() => { console.log("PA ORDER") }}
+                        disabled={(addresses.length>=1) ? (false) : (true)}>
+                        <Text style={{ color: "white" }}>
+                            Place Order
+                        </Text>
+                    </TouchableOpacity>
                 </View>
-                <TouchableOpacity style={styles.button} onPress={() => { console.log("PA ORDER") }}>
-                    <Text style={{ color: "white" }}>
-                        Place Order
-                    </Text>
-                </TouchableOpacity>
             </View>
         );
     }
@@ -87,9 +121,10 @@ const CheckoutScreen = ({ navigation, route }) => {
             {(isLoading && !refreshing) ? (
                 (<ActivityIndicator size="large" color="#0000ff" />)
             ) : ((refreshing) ? (<ActivityIndicator size="large" color="#0000ff" />) : (
-                <View>
+                (data !== "undefined" && data !== undefined && data.length > 0) ? (<View>
                     <FlatList data={data}
                         keyExtractor={(item) => item.product_id}
+                        contentContainerStyle={{ flexGrow: 1 }}
                         renderItem={({ item, index }) => (
                             <TouchableOpacity style={{ display: "flex", flexShrink: 1, flex: 1, maxHeight: "90%" }}>
                                 <View style={styles.row}>
@@ -110,13 +145,15 @@ const CheckoutScreen = ({ navigation, route }) => {
                             </TouchableOpacity>
                         )}
                         ListFooterComponent={footer}
+                        ListFooterComponentStyle={{ flex: 1, justifyContent: "flex-end" }}
+                        ListHeaderComponent={header}
                         ItemSeparatorComponent={separator}
                         refreshControl={
                             <RefreshControl
                                 refreshing={refreshing}
                                 onRefresh={onRefresh} />
                         } />
-                </View>
+                </View>) : (<Text>You have no selected items in your cart.</Text>)
             ))}
         </SafeAreaView>
     );
@@ -183,10 +220,27 @@ const styles = StyleSheet.create({
         borderRadius: 5,
         display: "flex",
         flex: 1,
+        minHeight: 40,
+        maxHeight: 45,
         flexDirection: "row",
         justifyContent: "center",
         alignItems: "center"
     },
+
+    disabledButton:{
+        alignItems: "center",
+        backgroundColor: 'rgba(100, 100, 100, 0.3)',
+        width: "90%",
+        padding: 10,
+        borderRadius: 5,
+        display: "flex",
+        flex: 1,
+        minHeight: 40,
+        maxHeight: 45,
+        flexDirection: "row",
+        justifyContent: "center",
+        alignItems: "center"
+    }
 });
 
 export default CheckoutScreen;

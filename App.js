@@ -45,7 +45,7 @@ export default function App() {
         <Tab.Screen name="Home" component={HomeScreen} />
         <Tab.Screen name="Shop" component={Shop} />
         <Tab.Screen name="Cart" component={CartScreen}/>
-        <Tab.Screen name="Profile" component={ProfileScreen} />
+        <Tab.Screen name="Profile" component={ProfileScreen}/>
       </Tab.Navigator>
     </NavigationContainer>
   );

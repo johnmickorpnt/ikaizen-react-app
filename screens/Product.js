@@ -1,10 +1,6 @@
 import { StyleSheet, Text, View, Button, FlatList, TouchableHighlight, TextInput, Image, TouchableOpacity, ScrollView, RefreshControl, ActivityIndicator, SafeAreaView } from 'react-native';
-import React, { useState, useEffect, useLayoutEffect } from 'react';
-import { Table, TableWrapper, Row, Rows, Col, Cols, Cell } from 'react-native-table-component';
-// import { SafeAreaView } from 'react-native-safe-area-context';
+import React, { useState, useEffect } from 'react';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import Collapsible from 'react-native-collapsible';
-import Accordion from 'react-native-collapsible/Accordion';
 const api_url = "http://192.168.254.100:8000";
 
 const Product = ({ navigation, route }) => {

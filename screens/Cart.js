@@ -1,11 +1,7 @@
 import { StyleSheet, Text, View, Button, FlatList, TouchableHighlight, TextInput, Image, TouchableOpacity, ScrollView, RefreshControl, ActivityIndicator, SafeAreaView } from 'react-native';
 import React, { useState, useEffect, useLayoutEffect } from 'react';
-import { Table, TableWrapper, Row, Rows, Col, Cols, Cell } from 'react-native-table-component';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 const Stack = createNativeStackNavigator();
-import Ionicons from '@expo/vector-icons/Ionicons';
-import Collapsible from 'react-native-collapsible';
-import Accordion from 'react-native-collapsible/Accordion';
 import CartScreen from './CartScreen';
 import ShopScreen from './ShopScreen';
 import CheckoutScreen from './CheckoutScreen'

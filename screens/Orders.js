@@ -1,16 +1,14 @@
 import { StyleSheet, Text, View, Button, FlatList, TouchableHighlight, TextInput, Image, TouchableOpacity, ScrollView, RefreshControl, ActivityIndicator, SafeAreaView } from 'react-native';
-import React, { useState, useEffect, useLayoutEffect } from 'react';
-import { Table, TableWrapper, Row, Rows, Col, Cols, Cell } from 'react-native-table-component';
+import React, { useState, useEffect } from 'react';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import BouncyCheckbox from "react-native-bouncy-checkbox";
-
 const api_url = "http://192.168.254.100:8000";
 
-const CartScreen = ({ navigation, route }) => {
+const Orders = ({ navigation, route }) => {
     const [data, setData] = useState();
     const [refreshing, setRefreshing] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [activeProd, setActive] = useState([]);
+    const [temp, setTemp] = useState([]);
     const wait = (timeout) => {
         return new Promise(resolve => setTimeout(resolve, timeout));
     }
@@ -24,7 +22,7 @@ const CartScreen = ({ navigation, route }) => {
     }, []);
     const fetchData = () => {
         setIsLoading(true);
-        fetch(api_url + `/api/cart/`, {
+        fetch(api_url + `/api/user/201/orders/`, {
             method: 'GET', // *GET, POST, PUT, DELETE, etc.
             headers: {
                 'Content-Type': 'application/json'
@@ -32,7 +30,7 @@ const CartScreen = ({ navigation, route }) => {
         })
             .then((re) => re.json())
             .then((re) => {
-                setData(re);
+                setData((re.length > 0) ? (re) : (0));
             })
             .catch(error => console.error(error));
     }
@@ -40,17 +38,19 @@ const CartScreen = ({ navigation, route }) => {
         if (data === undefined)
             return fetchData();
         setIsLoading(false);
+        if (data === 0) return;
         data.forEach(element => {
             setActive(prevArray => [...prevArray, element.isActive]);
         })
-        if (data.length !== activeProd.length)
-            return;
-        activeProd.forEach(element => {
-            console.log(element)
-        });
-    }, [data]);
+    }, [data, temp]);
 
-
+    const header = () => {
+        return (
+            <Text style={{ fontSize: 23, fontWeight: "bold", textAlign: "center", marginTop: 30 }}>
+                Orders Made
+            </Text>
+        );
+    }
     const footer = () => {
         return (
             <View style={{ paddingHorizontal: 10, paddingVertical: 15, display: "flex", flex: 1, flexDirection: "row", justifyContent: "center", width: "100%", alignItems: "center" }}>
@@ -58,8 +58,7 @@ const CartScreen = ({ navigation, route }) => {
                     alignItems: "center",
                     padding: 10,
                     width: "50%"
-                }}
-                    onPress={() => { navigation.navigate("Shop") }}>
+                }}>
                     <Text style={{ textAlign: "center", width: "100%" }}>
                         Continue Shopping
                     </Text>
@@ -73,79 +72,67 @@ const CartScreen = ({ navigation, route }) => {
             </View>
         );
     }
-    const active = (id, index) => {
-        if (active[index] === "undefined") return false;
-        console.log(id)
-        setActive([]);
-        setIsLoading(true);
-        fetch(api_url + `/api/cart/active/${id}`, {
-            method: 'POST', // *GET, POST, PUT, DELETE, etc.
-            headers: {
-                'Content-Type': 'application/json'
-            },
-        })
-            .then((re) => re.json())
-            .then((re) => {
-                setData(re[0]);
-                wait(300).then(() => {
-                    setIsLoading(false);
-                });
-            })
-            .catch(error => console.error(error));
+    const check = (o) => {
+        setTemp(prevArr => [...prevArr, o]);
     }
     return (
         <View style={styles.container}>
             {(isLoading && !refreshing) ? (
                 (<ActivityIndicator size="large" color="#0000ff" />)
             ) : ((refreshing || (data === "undefined")) ? (<ActivityIndicator size="large" color="#0000ff" />) :
-                (<FlatList data={data}
-                    keyExtractor={(item) => item.product_id}
-                    renderItem={({ item, index }) => (
-                        <TouchableOpacity style={{ display: "flex", flexShrink: 1, flex: 1, maxHeight: "90%" }}>
-                            <View style={styles.row}>
-                                <View style={{ width: 100 }}>
-                                    <Image
-                                        style={styles.logo}
-                                        source={{
-                                            uri: api_url + "/storage/images/" + item.prod_image,
-                                        }}
-                                    />
-                                </View>
-                                <View style={{ flexShrink: 1, marginHorizontal: 5 }}>
-                                    <Text numberOfLines={2}>{item.name}</Text>
-                                    <Text>x{item.quantity}</Text>
-                                    <Text style={{ fontWeight: "bold", color: "#FF1818" }}>{subTotal(item.price, item.quantity)}</Text>
-                                </View>
-                                <View style={{ marginLeft: "auto", paddingHorizontal: 5 }}>
-                                    <BouncyCheckbox
-                                        size={25}
-                                        isChecked={((activeProd[index] === 1) ? (true) : (false))}
-                                        fillColor={"red"}
-                                        onPress={() => {
-                                            active(item.product_id, index)
-                                        }}
-                                        disableBuiltInState
-                                    />
-                                </View>
-                            </View>
-                        </TouchableOpacity>
-                    )}
-                    ItemSeparatorComponent={separator}
-                    ListFooterComponent={footer(navigation)}
-                    refreshControl={
-                        <RefreshControl
-                            refreshing={refreshing}
-                            onRefresh={onRefresh} />
-                    } />))}
+                (
+                    (data !== 0) ? (
+                        <FlatList data={data}
+                            keyExtractor={(item) => item.product_id}
+                            extraData={temp}
+                            renderItem={({ item, index }) => (
+                                <TouchableOpacity style={{ display: "flex", flexShrink: 1, flex: 1, maxHeight: "90%" }}
+                                    onLayout={() => check(item.order_number)}
+                                >
+                                    <View style={styles.row}>
+                                        <View style={{ width: 100 }}>
+                                            <Image
+                                                style={styles.logo}
+                                                source={{
+                                                    uri: api_url + "/storage/images/" + item.prod_image,
+                                                }}
+                                            />
+                                        </View>
+                                        <View style={{ marginHorizontal: 5, flexGrow: 1, width: "70%" }}>
+                                            <Text numberOfLines={2}>{item.name}</Text>
+                                            <Text>x{item.quantity}</Text>
+                                            <Text style={{ fontWeight: "bold", color: "#FF1818" }}></Text>
+                                            <Text style={{ textTransform: "capitalize" }}>{item.order_status}</Text>
+                                            {(item.isReviewed === 0) ? (null) : 
+                                            (temp[(index-1 < 0) ? (index) : (index-1)] === item.order_number) ? (
+                                                <View style={{ marginLeft: "auto", backgroundColor: "red" }}>
+                                                    <TouchableOpacity style={styles.button}
+                                                        onPress={() => navigation.navigate("ReviewsScreen", {id:item.order_id})}
+                                                    >
+                                                        <Text style={{ color: "white", textAlign: "center", width: "100%" }}>
+                                                            Review
+                                                        </Text>
+                                                    </TouchableOpacity>
+                                                </View>
+                                            ) : (
+                                                null
+                                            )}
+                                        </View>
+                                    </View>
+                                </TouchableOpacity>
+                            )
+                            }
+                            ListHeaderComponent={header}
+                            refreshControl={
+                                <RefreshControl
+                                    refreshing={refreshing}
+                                    onRefresh={onRefresh} />
+                            } />
+                    ) : (<Text>No Orders</Text>)
+                ))}
         </View>
     );
 }
-let subTotal = (p, q) => {
-    console.log(p,q);
-    // let price = parseInt(p.replace("₱", "").replace(",", "").replace(".00", "")) * q;
-    // return "₱" + price.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
-}
-
 const separator = () => {
     return (
         <View
@@ -215,4 +202,4 @@ const styles = StyleSheet.create({
     },
 });
 
-export default CartScreen;
+export default Orders;

@@ -96,7 +96,7 @@ const header = (navigation, brands) => {
                 }}
             />
 
-            <View style={{ padding: 10, flex: 1, flexDirection: "column", justifyContent: "center", alignItems:"center" }}>
+            <View style={{ padding: 10, flex: 1, flexDirection: "column", justifyContent: "center", alignItems: "center" }}>
                 <View style={{ position: "relative" }}>
                     <TextInput
                         style={styles.input}
@@ -105,7 +105,7 @@ const header = (navigation, brands) => {
                     <Ionicons name={"search-outline"} size={20} color={"black"} style={{ position: "absolute", right: 10, top: 15 }} />
                 </View>
                 <SelectDropdown
-                    buttonStyle={{ borderWidth: 1, borderRadius: 5, height: 40, minWidth:"95%", marginTop:12 }}
+                    buttonStyle={{ borderWidth: 1, borderRadius: 5, height: 40, minWidth: "95%", marginTop: 12 }}
                     data={brands}
                     onSelect={(selectedItem, index) => {
                         console.log(selectedItem, index)
@@ -195,7 +195,7 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderRadius: 5,
         padding: 10,
-        minWidth:"95%",
+        minWidth: "95%",
     },
 });
 
