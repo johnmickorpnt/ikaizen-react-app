@@ -1,7 +1,9 @@
-import { StyleSheet, Text, View, Button, FlatList, TouchableHighlight, TextInput, Image, TouchableOpacity, ScrollView, RefreshControl, ActivityIndicator, SafeAreaView, KeyboardAvoidingView } from 'react-native';
+import { StyleSheet, BackHandler, LogBox, Text, View, Button, FlatList, TouchableHighlight, TextInput, Image, TouchableOpacity, ScrollView, RefreshControl, ActivityIndicator, SafeAreaView, KeyboardAvoidingView } from 'react-native';
 import React, { useState, useEffect, useLayoutEffect } from 'react';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import Dialog, { DialogContent } from 'react-native-popup-dialog';
 import * as SecureStore from 'expo-secure-store';
+import { isLoading } from 'expo-font';
 const api_url = "http://192.168.254.100:8000";
 
 const Login = ({ navigation, route }) => {
@@ -10,12 +12,18 @@ const Login = ({ navigation, route }) => {
     const [loggingIn, setLoggingIn] = useState(false);
     const [user, setUser] = useState();
     const [token, setToken] = useState();
-    const [error, setError] = useState("");
+    const [error, setError] = useState(false);
     const [isSuccess, setIsSuccess] = useState(false);
-    const [loading, setLoading] = useState(false);
-
+    const [errorMsg, setErrorMsg] = useState(false);
+    const [dialogVisible, setDialogVisible] = useState(false);
+    const wait = (timeout) => {
+        return new Promise(resolve => setTimeout(resolve, timeout));
+    }
+    LogBox.ignoreLogs(['Warning: ...']); // Ignore log notification by message
+    LogBox.ignoreAllLogs();//Ignore all log notifications
     useEffect(() => {
         console.log(`error: "${error}", `, `is success? ${isSuccess}`);
+        if(isSuccess) return navigation.navigate("MainScreen");
         if (token !== undefined && user !== undefined) {
             return store();
         }
@@ -23,6 +31,7 @@ const Login = ({ navigation, route }) => {
         loginAttempt(email, password);
         setLoggingIn(false);
     }, [loggingIn, isSuccess, error, token, user])
+
     async function save(key, value) {
         await SecureStore.setItemAsync(key, value);
     }
@@ -30,10 +39,17 @@ const Login = ({ navigation, route }) => {
         console.log("LOGGING IN");
         setUser(undefined);
         setToken(undefined);
-        setError("");
+        setError(false);
 
         if (e === "" || e === "undefined" || e === undefined || p === "" || e === "undefined" || p === undefined) {
-            setError("Missing Inputs")
+            let e = { "errors": "Missing Inputs" }
+            let list = "";
+            for (const [k, v] of Object.entries(e)) {
+                list += `-${v}\n`;
+            }
+            wait(500).then(() => setLoggingIn(false));
+            setError(true);
+            setErrorMsg(list);
             setLoggingIn(false);
             return false;
         }
@@ -57,9 +73,10 @@ const Login = ({ navigation, route }) => {
             body: formBody
         })
         const data = await response.json();
-
         if (response.status !== 200) {
-            return setError(data.message)
+            setLoggingIn(false);
+            setError(true);
+            return setErrorMsg("- " + data.errors);
         }
         setToken(data.token);
         setUser(data.email);
@@ -70,11 +87,25 @@ const Login = ({ navigation, route }) => {
             "token": token,
         })
         await save("credentials", credentials)
-            .then(() => navigation.navigate("MainScreen"))
             .catch(error => console.log(error));
+        setIsSuccess(true);
     }
     return (
         <SafeAreaView style={styles.container}>
+            {(loggingIn && (email !== "undefined" && email !== undefined && password !== undefined && password !== "undefined")) ? (<ActivityIndicator size="large" color="#0000ff" />) : (null)}
+            <Dialog
+                containerStyle={{ padding: 50 }}
+                visible={error}
+                onTouchOutside={() => {
+                    setError(false)
+                }}
+                dialogTitle={<View style={{ paddingHorizontal: 50, paddingVertical: 10 }}><Text style={{ fontWeight: "bold", fontSize: 24 }}>Registration Error</Text></View>}
+            >
+                <DialogContent>
+                    <Text>Please make sure you have accomplished in the list:</Text>
+                    <Text>{errorMsg}</Text>
+                </DialogContent>
+            </Dialog>
             <View style={{ width: "100%", height: "15%" }}>
                 <Image
                     style={styles.mainLogo}

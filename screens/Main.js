@@ -16,8 +16,10 @@ const shopName = "Shop";
 const cartName = "Cart";
 
 const Main = () => {
+    useEffect(() =>{
+        console.log("GOOD")
+    }, []);
     return (
-
         <Tab.Navigator
             initialRouteName={"TabRoute"}
             screenOptions={({ route }) => ({

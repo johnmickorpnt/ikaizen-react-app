@@ -3,6 +3,7 @@ import React, { useState, useEffect, useLayoutEffect } from 'react';
 import { Table, TableWrapper, Row, Rows, Col, Cols, Cell } from 'react-native-table-component';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import BouncyCheckbox from "react-native-bouncy-checkbox";
+import * as SecureStore from 'expo-secure-store';
 
 const api_url = "http://192.168.254.100:8000";
 
@@ -11,6 +12,15 @@ const CartScreen = ({ navigation, route }) => {
     const [refreshing, setRefreshing] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [activeProd, setActive] = useState([]);
+    const [credentials, setCredentials] = useState();
+    async function retrieve() {
+        let result = await SecureStore.getItemAsync("credentials")
+        try {
+            setCredentials(JSON.parse(result));
+        } catch (error) {
+            console.log("ERROR:", error);
+        }
+    }
     const wait = (timeout) => {
         return new Promise(resolve => setTimeout(resolve, timeout));
     }
@@ -21,13 +31,15 @@ const CartScreen = ({ navigation, route }) => {
             fetchData();
             setRefreshing(false);
         });
-    }, []);
+    }, [credentials]);
     const fetchData = () => {
+        console.log(credentials.token)
         setIsLoading(true);
         fetch(api_url + `/api/cart/`, {
             method: 'GET', // *GET, POST, PUT, DELETE, etc.
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${credentials.token}`
             },
         })
             .then((re) => re.json())
@@ -37,6 +49,9 @@ const CartScreen = ({ navigation, route }) => {
             .catch(error => console.error(error));
     }
     useEffect(() => {
+        if (credentials === undefined)
+            return retrieve();
+
         if (data === undefined)
             return fetchData();
         setIsLoading(false);
@@ -48,7 +63,7 @@ const CartScreen = ({ navigation, route }) => {
         activeProd.forEach(element => {
             console.log(element)
         });
-    }, [data]);
+    }, [credentials, data]);
 
 
     const footer = () => {
@@ -81,7 +96,8 @@ const CartScreen = ({ navigation, route }) => {
         fetch(api_url + `/api/cart/active/${id}`, {
             method: 'POST', // *GET, POST, PUT, DELETE, etc.
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${credentials.token}`
             },
         })
             .then((re) => re.json())
@@ -141,7 +157,7 @@ const CartScreen = ({ navigation, route }) => {
     );
 }
 let subTotal = (p, q) => {
-    console.log(p,q);
+    console.log(p, q);
     // let price = parseInt(p.replace("₱", "").replace(",", "").replace(".00", "")) * q;
     // return "₱" + price.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
 }

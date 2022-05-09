@@ -1,9 +1,10 @@
-import { StyleSheet, Text, Alert, View, Button, FlatList, TouchableHighlight, TextInput, Image, TouchableOpacity, ScrollView, RefreshControl, ActivityIndicator, SafeAreaView } from 'react-native';
+import { StyleSheet, Text, LogBox, Alert, View, Button, FlatList, TouchableHighlight, TextInput, Image, TouchableOpacity, ScrollView, RefreshControl, ActivityIndicator, SafeAreaView } from 'react-native';
 import Dialog, { DialogContent } from 'react-native-popup-dialog';
 import React, { useState, useEffect, useLayoutEffect } from 'react';
 import { Table, TableWrapper, Row, Rows, Col, Cols, Cell } from 'react-native-table-component';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import BouncyCheckbox from "react-native-bouncy-checkbox";
+
 const api_url = "http://192.168.254.100:8000";
 
 const Register = ({ navigation, route }) => {
@@ -15,24 +16,35 @@ const Register = ({ navigation, route }) => {
     const [dialogVisible, setDialogVisible] = useState(false);
     const [errorMsg, setErrorMsg] = useState();
     const [registering, setRegistering] = useState(false);
-    const [error, setError] = useState("");
+    const [error, setError] = useState(false);
     const [isSuccess, setIsSuccess] = useState(false);
     const [loading, setLoading] = useState(false);
-
+    const wait = (timeout) => {
+        return new Promise(resolve => setTimeout(resolve, timeout));
+    }
+    LogBox.ignoreLogs(['Warning: ...']); // Ignore log notification by message
+    LogBox.ignoreAllLogs();//Ignore all log notifications
     useEffect(() => {
         console.log(`is success? ${isSuccess}`);
-        if(isSuccess) return navigation.navigate("MainScreen")
+        if (isSuccess) return navigation.navigate("LoginScreen");
+        // console.log(error && errorMsg !== "", error, errorMsg);
+        if (error) console.log(error)
         if (!registering) return false;
         registerAttempt(firstName, lastName, email, password, confirmPassword);
         setRegistering(false);
-    }, [registering, error, isSuccess])
+    }, [registering, error, errorMsg, isSuccess])
 
     const registerAttempt = async (fName, lName, email, password, confirmPassword) => {
         console.log("REGISTERING IN");
-        setError("");
-
+        setError(false);
         if (fName === undefined || lName === undefined || email === undefined || password === undefined || confirmPassword === undefined) {
-            setError({ "errors": "Missing Inputs" })
+            let e = { "errors": "Missing Inputs" }
+            let list = "";
+            for (const [k, v] of Object.entries(e)) {
+                list += `-${v}\n`;
+            }
+            setError(true);
+            setErrorMsg(list);
             setRegistering(false);
             return false;
         }
@@ -62,15 +74,34 @@ const Register = ({ navigation, route }) => {
         const data = await response.json();
 
         if (response.status !== 200) {
-            let list = "";
-            return setError(list)
+            let l = "";
+            for (const [k, v] of Object.entries(data.errors)) {
+                if (typeof v === "string") l += v;
+                for (const [sk, sv] of Object.entries(v)) {
+                    l += `-${sv}\n`;
+                }
+            }
+            setRegistering(false);
+            setError(true);
+            return setErrorMsg(l);
         }
-        
         setIsSuccess(true);
     }
     return (
         <SafeAreaView style={styles.container}>
-            
+            <Dialog
+                containerStyle={{ padding: 50 }}
+                visible={error}
+                onTouchOutside={() => {
+                    setError(false)
+                }}
+                dialogTitle={<View style={{ paddingHorizontal: 50, paddingVertical: 10 }}><Text style={{ fontWeight: "bold", fontSize: 24 }}>Registration Error</Text></View>}
+            >
+                <DialogContent>
+                    <Text>Please make sure you have accomplished in the list:</Text>
+                    <Text>{errorMsg}</Text>
+                </DialogContent>
+            </Dialog>
             <View style={{ width: "100%", height: "15%" }}>
                 <Image
                     style={styles.mainLogo}
