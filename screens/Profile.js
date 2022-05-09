@@ -4,10 +4,11 @@ import UserInfo from './UserInfo';
 import AddressBook from './AddressBook';
 import Orders from './Orders';
 import Review from './Review';
+
 const Stack = createNativeStackNavigator();
 const ProfileScreen = ({ navigation, route }) => {
     return (
-        <Stack.Navigator screenOptions={{headerShown:false}}>
+        <Stack.Navigator screenOptions={{headerShown:false}} initialRouteName={"Profile"}>
             <Stack.Screen
                 name="UserInfo"
                 component={UserInfo}

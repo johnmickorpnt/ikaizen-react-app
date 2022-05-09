@@ -1,6 +1,10 @@
-import { StyleSheet, Text, View, Button, FlatList, TouchableHighlight, TextInput, Image, TouchableOpacity, ScrollView, RefreshControl, ActivityIndicator, SafeAreaView } from 'react-native';
+import { StyleSheet, Text, View, Button, FlatList, TouchableHighlight, TextInput, Alert, Image, TouchableOpacity, ScrollView, RefreshControl, ActivityIndicator, SafeAreaView } from 'react-native';
 import React, { useState, useEffect } from 'react';
+import { CommonActions } from '@react-navigation/native';
+
 import Ionicons from '@expo/vector-icons/Ionicons';
+import * as SecureStore from 'expo-secure-store';
+
 const api_url = "http://192.168.254.100:8000";
 
 const UserInfo = ({ navigation, route }) => {
@@ -10,8 +14,17 @@ const UserInfo = ({ navigation, route }) => {
     const [toggleCheckBox, setToggleCheckBox] = useState(false);
     const [activeProd, setActive] = useState([]);
     const [addresses, setAddresses] = useState();
+    const [credentials, setCredentials] = useState();
     const wait = (timeout) => {
         return new Promise(resolve => setTimeout(resolve, timeout));
+    }
+    async function retrieve() {
+        let result = await SecureStore.getItemAsync("credentials")
+        try {
+            setCredentials(JSON.parse(result));
+        } catch (error) {
+            console.log("ERROR:", error);
+        }
     }
     const onRefresh = React.useCallback(() => {
         setRefreshing(true);
@@ -35,12 +48,34 @@ const UserInfo = ({ navigation, route }) => {
             })
             .catch(error => console.error(error));
     }
+    const Dialog = () => {
+        Alert.alert(
+            "Are you sure to logout?",
+            "Come back!",
+            [
+                {
+                    text: "Cancel",
+                    onPress: () => console.log("Cancel Pressed"),
+                    style: "cancel"
+                },
+                { text: "OK", onPress: () => logout() }
+            ]
+        );
+    }
+    async function logout() {
+        await SecureStore.deleteItemAsync("credentials")
+            .then(() => console.log("LOGGED OUT"))
+            .then(() => navigation.navigate("LoginScreen"))
+            .catch((error) => console.log(error));
+    }
     useEffect(() => {
+        if (credentials === undefined)
+            return retrieve();
+        console.log(credentials);
         if (data === undefined)
             return fetchData();
         setIsLoading(false);
-
-    }, [data]);
+    }, [data, credentials]);
     return (
         <SafeAreaView style={styles.container}>
             {
@@ -71,7 +106,7 @@ const UserInfo = ({ navigation, route }) => {
                                         {data.email}
                                     </Text>
                                     <View style={{ marginTop: 15, width: "100%" }}>
-                                        <TouchableOpacity style={styles.button}  onPress={() => navigation.navigate("OrdersScreen")}>
+                                        <TouchableOpacity style={styles.button} onPress={() => navigation.navigate("OrdersScreen")}>
                                             <Text style={{ color: "white" }}>My orders</Text>
                                         </TouchableOpacity>
                                         <TouchableOpacity style={styles.button} onPress={() => navigation.navigate("AddressScreen")}>
@@ -79,7 +114,7 @@ const UserInfo = ({ navigation, route }) => {
                                                 Address Book
                                             </Text>
                                         </TouchableOpacity>
-                                        <TouchableOpacity style={styles.button}>
+                                        <TouchableOpacity style={styles.button} onPress={Dialog}>
                                             <Text style={{ color: "white", fontWeight: "900" }}>Logout</Text>
                                         </TouchableOpacity>
                                     </View>
