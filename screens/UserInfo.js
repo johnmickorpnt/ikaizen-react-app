@@ -36,11 +36,11 @@ const UserInfo = ({ navigation, route }) => {
     }, []);
     const fetchData = () => {
         setIsLoading(true);
-        fetch(`${api_url}/api/user/${email}`, {
+        fetch(`${api_url}/api/user/`, {
             method: 'GET', // *GET, POST, PUT, DELETE, etc.
             headers: {
                 'Content-Type': 'application/json',
-                'Bearer':''
+                'Authorization':`Bearer ${credentials.token}`
             },
         })
             .then((re) => re.json())
