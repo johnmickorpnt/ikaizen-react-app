@@ -5,7 +5,6 @@ import { useIsFocused } from '@react-navigation/native';
 
 import Ionicons from '@expo/vector-icons/Ionicons';
 import * as SecureStore from 'expo-secure-store';
-
 const api_url = "http://192.168.254.100:8000";
 
 const UserInfo = ({ navigation, route }) => {
@@ -37,10 +36,11 @@ const UserInfo = ({ navigation, route }) => {
     }, []);
     const fetchData = () => {
         setIsLoading(true);
-        fetch(api_url + `/api/user/201`, {
+        fetch(`${api_url}/api/user/${email}`, {
             method: 'GET', // *GET, POST, PUT, DELETE, etc.
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'Bearer':''
             },
         })
             .then((re) => re.json())
