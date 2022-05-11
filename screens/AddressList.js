@@ -59,7 +59,7 @@ const AddressList = ({ navigation, route }) => {
             if (element.isActive === 1)
                 setSelected(element.id)
         });
-    }, [data, activeAddress, selected]);
+    }, [data, activeAddress, selected, credentials]);
     const save = () => {
         setIsLoading(true);
         fetch(api_url + `/api/user/201/addresses/activate/${selected}`, {
