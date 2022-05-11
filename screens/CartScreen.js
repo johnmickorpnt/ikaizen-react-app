@@ -1,10 +1,9 @@
 import { StyleSheet, Text, View, Button, FlatList, TouchableHighlight, TextInput, Image, TouchableOpacity, ScrollView, RefreshControl, ActivityIndicator, SafeAreaView } from 'react-native';
 import React, { useState, useEffect, useLayoutEffect } from 'react';
-import { Table, TableWrapper, Row, Rows, Col, Cols, Cell } from 'react-native-table-component';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import BouncyCheckbox from "react-native-bouncy-checkbox";
 import * as SecureStore from 'expo-secure-store';
-
+import { SwipeListView } from 'react-native-swipe-list-view';
 const api_url = "http://192.168.254.100:8000";
 
 const CartScreen = ({ navigation, route }) => {
@@ -48,12 +47,34 @@ const CartScreen = ({ navigation, route }) => {
             })
             .catch(error => console.error(error));
     }
+
+    const deleteProduct = (data) => {
+        let id = data.item.product_id;
+        fetch(`${api_url}/api/cart/delete/${id}`, {
+            method: 'DELETE', // *GET, POST, PUT, DELETE, etc.
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${credentials.token}`
+            },
+        })
+            .then((re) => re.json())
+            .then((re) => {
+                console.log(re);
+                // setIsLoading(true);
+                setData(re);
+            })
+            .catch(error => console.error(error));
+    }
     useEffect(() => {
+        const unsubscribe = navigation.addListener('focus', () => {
+            setData();
+        });
         if (credentials === undefined)
             return retrieve();
 
         if (data === undefined)
             return fetchData();
+
         setIsLoading(false);
         data.forEach(element => {
             setActive(prevArray => [...prevArray, element.isActive]);
@@ -63,7 +84,7 @@ const CartScreen = ({ navigation, route }) => {
         activeProd.forEach(element => {
             console.log(element)
         });
-    }, [credentials, data]);
+    }, [credentials, data, navigation]);
 
 
     const footer = () => {
@@ -109,57 +130,123 @@ const CartScreen = ({ navigation, route }) => {
             })
             .catch(error => console.error(error));
     }
+    const config = {
+        velocityThreshold: 0.3,
+        directionalOffsetThreshold: 80
+    };
     return (
         <View style={styles.container}>
             {(isLoading && !refreshing) ? (
                 (<ActivityIndicator size="large" color="#0000ff" />)
             ) : ((refreshing || (data === "undefined")) ? (<ActivityIndicator size="large" color="#0000ff" />) :
-                (<FlatList data={data}
+                (data !== undefined && data.length !== 0) ? (<SwipeListView data={data}
+                    contentContainerStyle={{ backgroundColor: "white" }}
                     keyExtractor={(item) => item.product_id}
                     renderItem={({ item, index }) => (
-                        <TouchableOpacity style={{ display: "flex", flexShrink: 1, flex: 1, maxHeight: "90%" }}>
-                            <View style={styles.row}>
-                                <View style={{ width: 100 }}>
-                                    <Image
-                                        style={styles.logo}
-                                        source={{
-                                            uri: api_url + "/storage/images/" + item.prod_image,
-                                        }}
-                                    />
-                                </View>
-                                <View style={{ flexShrink: 1, marginHorizontal: 5 }}>
-                                    <Text numberOfLines={2}>{item.name}</Text>
-                                    <Text>x{item.quantity}</Text>
-                                    <Text style={{ fontWeight: "bold", color: "#FF1818" }}>{subTotal(item.price, item.quantity)}</Text>
-                                </View>
-                                <View style={{ marginLeft: "auto", paddingHorizontal: 5 }}>
-                                    <BouncyCheckbox
-                                        size={25}
-                                        isChecked={((activeProd[index] === 1) ? (true) : (false))}
-                                        fillColor={"red"}
-                                        onPress={() => {
-                                            active(item.product_id, index)
-                                        }}
-                                        disableBuiltInState
-                                    />
-                                </View>
-                            </View>
+                        <TouchableOpacity style={{ display: "flex", flexShrink: 1, flex: 1, justifyContent: "center", maxHeight: "90%", backgroundColor: "white" }}
+                            disabled={(parseInt(item.stocks) > 0) ? (false) : (true)}
+                            activeOpacity={1}>
+                            {(item.stocks > 0) ?
+                                (
+                                    <View style={styles.row}>
+                                        <View style={{ width: 100 }}>
+                                            <Image
+                                                style={styles.logo}
+                                                source={{
+                                                    uri: api_url + "/storage/images/" + item.prod_image,
+                                                }}
+                                            />
+                                        </View>
+                                        <View style={{ flexShrink: 1, marginHorizontal: 5 }}>
+                                            <Text numberOfLines={2}>{item.name}</Text>
+                                            <Text>x{item.quantity}</Text>
+                                            <Text style={{ fontWeight: "bold", color: "#FF1818" }}>{subTotal(item.price, item.quantity)}</Text>
+                                        </View>
+                                        <View style={{ marginLeft: "auto", paddingHorizontal: 5 }}>
+                                            <BouncyCheckbox
+                                                size={25}
+                                                isChecked={((activeProd[index] === 1) ? (true) : (false))}
+                                                fillColor={"red"}
+                                                onPress={() => {
+                                                    active(item.product_id, index)
+                                                }}
+                                                disableBuiltInState
+                                            />
+                                        </View>
+                                    </View>
+                                ) :
+                                (
+                                    <View style={styles.disabled}>
+                                        <Text style={{ color: "white", fontSize: 21, position: "absolute", zIndex: 1, textAlign: "center", width: "100%", fontWeight: "bold" }}>OUT OF STOCK</Text>
+                                        <View style={styles.row}>
+                                            <View style={{ width: 100 }}>
+                                                <Image
+                                                    style={styles.logoDisabled}
+                                                    source={{
+                                                        uri: api_url + "/storage/images/" + item.prod_image,
+                                                    }}
+                                                />
+                                            </View>
+                                            <View style={{ flexShrink: 1, marginHorizontal: 5 }}>
+                                                <Text numberOfLines={2}>{item.fasf}</Text>
+                                                <Text>x{item.quantity}</Text>
+                                                <Text style={{ fontWeight: "bold", color: "#FF1818" }}>{subTotal(item.price, item.quantity)}</Text>
+                                            </View>
+                                        </View>
+                                    </View>
+                                )
+                            }
                         </TouchableOpacity>
                     )}
+                    renderHiddenItem={(data, rowMap) => (
+                        <View style={{ width: "100%", height: "100%", display: "flex", alignItems: "flex-end", justifyContent: "center" }}>
+                            <View style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: 12, width: "40%" }}>
+                                <View style={{
+                                    display: "flex", flexDirection: "row", margin: 5, justifyContent: "center", alignItems: "center", width: "100%"
+                                }}>
+                                    <TouchableOpacity style={{ width: "25%", height: "100%", display: "flex", flexDirection: "row", alignItems: "center", marginHorizontal: 1 }}>
+                                        <Ionicons name={"remove"} size={30} color={"black"} />
+                                    </TouchableOpacity>
+                                    <TextInput placeholder='QTY' style={{ padding: 12, borderWidth: 1, borderRadius: 5, width: "50%", height: "100%" }} keyboardType={"numeric"} />
+                                    <TouchableOpacity style={{ width: "25%", height: "100%", display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "center", marginHorizontal: 1 }}>
+                                        <Ionicons name={"add"} size={30} color={"red"} />
+                                    </TouchableOpacity>
+                                </View>
+                                <View style={{ width: "100%", }}>
+                                    <TouchableOpacity style={{ flexGrow: 1, display: "flex", justifyContent: "center", alignItems: "center", padding: 5 }} onPress={() => deleteProduct(data)}>
+                                        <Ionicons name={"trash"} size={40} color={"red"} />
+                                    </TouchableOpacity>
+                                </View>
+                            </View>
+                        </View>
+                    )}
+                    disableRightSwipe={true}
+                    leftOpenValue={75}
+                    rightOpenValue={-170}
                     ItemSeparatorComponent={separator}
                     ListFooterComponent={footer(navigation)}
+                    // ListHeaderComponent={header}
                     refreshControl={
                         <RefreshControl
                             refreshing={refreshing}
                             onRefresh={onRefresh} />
-                    } />))}
+                    } />) : (
+                    <View>
+                        <Text style={{ fontSize: 16 }}>
+                            Welp, looks like your Cart is empty.
+                        </Text>
+                        <TouchableOpacity style={{ padding: 15, backgroundColor: "red", borderRadius: 5 }}
+                            onPress={() => navigation.navigate("ShopScreen")}>
+                            <Text style={{ color: "white", textAlign: "center", fontSize: 18 }}>SHOP NOW!</Text>
+                        </TouchableOpacity>
+                    </View>
+                ))}
         </View>
     );
 }
 let subTotal = (p, q) => {
-    console.log(p, q);
-    // let price = parseInt(p.replace("₱", "").replace(",", "").replace(".00", "")) * q;
-    // return "₱" + price.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
+    let price = parseInt(p.replace("₱", "").replace(",", "").replace(".00", "")) * q;
+    return "₱" + price.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
 }
 
 const separator = () => {
@@ -180,11 +267,35 @@ const styles = StyleSheet.create({
         justifyContent: "center",
         alignItems: "center"
     },
+    actionBtns: {
+        backgroundColor: "red",
+        height: "100%",
+        display: "flex",
+        justifyContent: "center",
+    },
+    disabled: {
+        backgroundColor: "gray",
+        display: "flex",
+        flex: 1,
+        flexShrink: 1,
+        flexDirection: "row",
+        justifyContent: "flex-start",
+        alignItems: "center",
+        width: "100%",
+        paddingHorizontal: 15
+    },
     logo: {
         width: "100%",
         height: 150,
         resizeMode: 'contain',
         borderRadius: 10
+    },
+    logoDisabled: {
+        width: "100%",
+        height: 150,
+        resizeMode: 'contain',
+        borderRadius: 10,
+        opacity: .1
     },
     row: {
         display: "flex",
@@ -221,6 +332,18 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         justifyContent: "center",
         alignItems: "center"
+    },
+    smButton: {
+        alignItems: "center",
+        backgroundColor: "red",
+        width: "45%",
+        padding: 8,
+        flexGrow: 1,
+        borderRadius: 5,
+        justifyContent: "flex-start",
+        display: "flex",
+        flexDirection: "row",
+
     },
     checkboxContainer: {
         flexDirection: "row",

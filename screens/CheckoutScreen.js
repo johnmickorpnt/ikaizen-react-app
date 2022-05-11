@@ -2,44 +2,102 @@ import { StyleSheet, Text, View, Button, FlatList, TouchableHighlight, TextInput
 import React, { useState, useEffect, useLayoutEffect } from 'react';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import SelectDropdown from 'react-native-select-dropdown';
+import * as SecureStore from 'expo-secure-store';
 const api_url = "http://192.168.254.100:8000";
 
 const CheckoutScreen = ({ navigation, route }) => {
     const [data, setData] = useState();
     const [refreshing, setRefreshing] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
-    const [toggleCheckBox, setToggleCheckBox] = useState(false);
     const [activeProd, setActive] = useState([]);
     const [total, setTotal] = useState();
     const [addresses, setAddresses] = useState();
+    const [activeAddStr, setActiveAddStr] = useState();
+    const [activeAddress, setActiveAddress] = useState();
+    const [credentials, setCredentials] = useState();
+    const [shippingFee, setShippingFee] = useState(59);
+    const [notes, setNotes] = useState("");
     const wait = (timeout) => {
         return new Promise(resolve => setTimeout(resolve, timeout));
     }
+
+    async function retrieve() {
+        let result = await SecureStore.getItemAsync("credentials")
+        try {
+            setCredentials(JSON.parse(result));
+        } catch (error) {
+            console.log("ERROR:", error);
+        }
+    }
+
     const onRefresh = React.useCallback(() => {
         setRefreshing(true);
         setActive([]);
         wait(1000).then(() => {
-            fetchData();
+            setData();
             setRefreshing(false);
         });
     }, []);
+
     const fetchData = () => {
         setIsLoading(true);
         fetch(api_url + `/api/checkout`, {
             method: 'GET', // *GET, POST, PUT, DELETE, etc.
             headers: {
-                'Content-Type': 'application/json'
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${credentials.token}`
             },
         })
             .then((re) => re.json())
             .then((re) => {
                 setData(re[0]);
                 setAddresses(re[1]);
+                setActiveAddStr(re[3]);
+                setActiveAddress(re[4][0]);
+                console.log(re[4])
                 setTotal(compute(re[0]));
             })
             .catch(error => console.error(error));
     }
+
+    const placeOrder = () => {
+        // setIsLoading(true);
+        let details = {
+            "addressId": activeAddress,
+            "notes": notes
+        }
+        console.log(details);
+        var formBody = [];
+        for (var property in details) {
+            var encodedKey = encodeURIComponent(property);
+            var encodedValue = encodeURIComponent(details[property]);
+            formBody.push(encodedKey + "=" + encodedValue);
+        }
+        formBody = formBody.join("&");
+        fetch(`${api_url}/api/placeOrder`, {
+            method: 'POST', // *GET, POST, PUT, DELETE, etc.
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'Authorization': `Bearer ${credentials.token}`
+            },
+            body: formBody
+        })
+            .then((re) => re.json())
+            .then((re) => {
+                // if (!re.status) return navigation.navigate("LoginScreen");
+                navigation.navigate("Profile")
+                // setResponse(re.message);
+                // console.log("NICE!")
+                // setAlertShow(true);
+            })
+            .catch(error => console.error(error));
+    }
+
     useEffect(() => {
+        if (credentials === undefined)
+            return retrieve();
         if (data === undefined)
             return fetchData();
         setIsLoading(false);
@@ -53,69 +111,39 @@ const CheckoutScreen = ({ navigation, route }) => {
         if (addresses === "undefined")
             return false;
 
-    }, [data, total]);
+    }, [data, total, credentials]);
 
     const compute = (d) => {
         let t = 0;
         for (const x of d) {
             t += parseInt(x.price.replace("₱", "").replace(",", "").replace(".00", "")) * parseInt(x.quantity);
         }
-        return "₱" + t.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
+        return "₱" + (t + shippingFee).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
     }
+
     const header = () => {
         return (
             <View style={{ flex: 1, flexDirection: "row", justifyContent: "center" }}>
                 {addresses !== 'undefined' && addresses.length >= 1 ?
-                    (<SelectDropdown
-                        buttonStyle={{ borderWidth: 1, borderRadius: 5, height: 40, minWidth: "95%", marginTop: 12 }}
-                        data={addresses}
-                        onSelect={(selectedItem, index) => {
-                            console.log(selectedItem, index)
-                        }}
-                        buttonTextAfterSelection={(selectedItem, index) => {
-                            // text represented after item is selected
-                            // if data array is an array of objects then return selectedItem.property to render after item is selected
-                            return selectedItem
-                        }}
-                        rowTextForSelection={(item, index) => {
-                            // text represented for each item in dropdown
-                            // if data array is an array of objects then return item.property to represent item in dropdown
-                            return item
-                        }}
-                        renderDropdownIcon={downIcon}
-                        defaultButtonText={"Address..."}
-                    />) :
-                    (<Text style={{ fontWeight: "bold", fontSize: 16 }}>No Address. Please go to your profile and add a delivery address.</Text>)
-                }
-            </View>
-        );
-    }
-    const downIcon = () => {
-        return <Ionicons name={"chevron-down-outline"} size={20} color={"black"} />
-    }
-    const footer = (p) => {
-        return (
-            <View>
-                <View style={{ flex: 1, justifyContent: "center", alignItems: "center", padding: 5 }}>
-                    <View style={{ width: "100%", paddingHorizontal: 15, marginVertical: 5 }}>
-                        <Text style={{ textAlign: "right", width: "100%" }}>
-                            SUBTOTAL: {"\n"}
-                            <Text style={{ fontWeight: "bold", color: "#FF1818", fontSize: 21 }}>
-                                {total}
+                    (<View style={{ padding: 12, display: "flex", alignItems: "center" }}>
+                        <Text style={{ fontSize: 18, textAlign: "center", fontWeight: "bold" }}>Your order will be delivered at:</Text>
+                        <Text>
+                            {activeAddStr}
+                        </Text>
+
+                    </View>) :
+                    (
+                        <TouchableOpacity style={{ padding: 10 }} onPress={() => navigation.navigate("AddressList")}>
+                            <Text style={{ fontWeight: "bold", fontSize: 16 }}>
+                                No Address. Please go to your profile and add a delivery address.
                             </Text>
-                        </Text>
-                    </View>
-                    <TouchableOpacity style={(addresses.length>=1) ? (styles.button) : (styles.disabledButton)}
-                        onPress={() => { console.log("PA ORDER") }}
-                        disabled={(addresses.length>=1) ? (false) : (true)}>
-                        <Text style={{ color: "white" }}>
-                            Place Order
-                        </Text>
-                    </TouchableOpacity>
-                </View>
-            </View>
+                        </TouchableOpacity>
+                    )
+                }
+            </View >
         );
     }
+
     return (
         <SafeAreaView style={styles.container}>
             {(isLoading && !refreshing) ? (
@@ -144,7 +172,34 @@ const CheckoutScreen = ({ navigation, route }) => {
                                 </View>
                             </TouchableOpacity>
                         )}
-                        ListFooterComponent={footer}
+                        ListFooterComponent={
+                            <>
+                                <View>
+                                    <View style={{ flex: 1, justifyContent: "center", alignItems: "center", padding: 5 }}>
+                                        <View style={{ width: "100%", paddingHorizontal: 15, marginVertical: 5 }}>
+                                            <Text style={{ textAlign: "right", width: "100%" }}>
+                                                SUBTOTAL: {"\n"}
+                                                <Text style={{ fontWeight: "bold", color: "#FF1818", fontSize: 21 }}>
+                                                    {total}
+                                                </Text>
+                                            </Text>
+                                            <TextInput placeholder='Notes...' style={{ borderWidth: 1, padding: 10, borderRadius: 5, width: "100%" }}
+                                                defaultValue={notes}
+                                                value={notes}
+                                                onChangeText={newText => setNotes(newText)}
+                                            />
+                                        </View>
+                                        <TouchableOpacity style={(addresses.length >= 1) ? (styles.button) : (styles.disabledButton)}
+                                            onPress={() => placeOrder()}
+                                            disabled={(addresses.length >= 1) ? (false) : (true)}>
+                                            <Text style={{ color: "white" }}>
+                                                Place Order
+                                            </Text>
+                                        </TouchableOpacity>
+                                    </View>
+                                </View>
+                            </>
+                        }
                         ListFooterComponentStyle={{ flex: 1, justifyContent: "flex-end" }}
                         ListHeaderComponent={header}
                         ItemSeparatorComponent={separator}
@@ -152,7 +207,8 @@ const CheckoutScreen = ({ navigation, route }) => {
                             <RefreshControl
                                 refreshing={refreshing}
                                 onRefresh={onRefresh} />
-                        } />
+                        }
+                    />
                 </View>) : (<Text>You have no selected items in your cart.</Text>)
             ))}
         </SafeAreaView>
@@ -227,7 +283,7 @@ const styles = StyleSheet.create({
         alignItems: "center"
     },
 
-    disabledButton:{
+    disabledButton: {
         alignItems: "center",
         backgroundColor: 'rgba(100, 100, 100, 0.3)',
         width: "90%",

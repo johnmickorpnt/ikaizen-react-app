@@ -1,6 +1,7 @@
 import { StyleSheet, Text, View, Button, FlatList, TouchableHighlight, TextInput, Alert, Image, TouchableOpacity, ScrollView, RefreshControl, ActivityIndicator, SafeAreaView } from 'react-native';
 import React, { useState, useEffect } from 'react';
 import { CommonActions } from '@react-navigation/native';
+import { useIsFocused } from '@react-navigation/native';
 
 import Ionicons from '@expo/vector-icons/Ionicons';
 import * as SecureStore from 'expo-secure-store';
@@ -65,7 +66,7 @@ const UserInfo = ({ navigation, route }) => {
     async function logout() {
         await SecureStore.deleteItemAsync("credentials")
             .then(() => console.log("LOGGED OUT"))
-            .then(() => navigation.navigate("LoginScreen"))
+            .then(() => navigation.navigate("LoginScreen", {"focused" : true}))
             .catch((error) => console.log(error));
     }
     useEffect(() => {

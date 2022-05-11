@@ -1,8 +1,9 @@
-import { StyleSheet, Text, View, Button, FlatList, TouchableHighlight, Image, TouchableOpacity, ScrollView, ActivityIndicator, TextInput, RefreshControl } from 'react-native';
-import React, { useState, useEffect } from 'react';
+import { StyleSheet, Text, View, Button, Animated, FlatList, TouchableHighlight, Image, TouchableOpacity, ScrollView, ActivityIndicator, TextInput, RefreshControl } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import SelectDropdown from 'react-native-select-dropdown'
-
+import * as SecureStore from 'expo-secure-store';
+import FadeInOut from 'react-native-fade-in-out';
 const api_url = "http://192.168.254.100:8000";
 const wait = (timeout) => {
     return new Promise(resolve => setTimeout(resolve, timeout));
@@ -16,19 +17,39 @@ const ShopScreen = ({ navigation, route }) => {
     const [isLoading, setIsLoading] = useState(false);
     const [query, setQuery] = useState("");
     const [text, setText] = useState('');
+    const [response, setResponse] = useState();
+    const [credentials, setCredentials] = useState();
+    const [alertShow, setAlertShow] = useState(false);
+    const wait = (timeout) => {
+        return new Promise(resolve => setTimeout(resolve, timeout));
+    }
+    async function retrieve() {
+        let result = await SecureStore.getItemAsync("credentials");
+        try {
+            setCredentials(JSON.parse(result));
+        } catch (error) {
+            console.log("ERROR:", error);
+        }
+    }
     const onRefresh = React.useCallback(() => {
         setRefreshing(true);
         wait(1500).then(() => {
-            if(text !== undefined && text.trim().length > 0) return search();
+            if (text !== undefined && text.trim().length > 0) return search();
             fetchData();
             setRefreshing(false);
         });
     }, []);
 
-    useEffect(() => {
+    useEffect(async () => {
         // Update the document title using the browser API
-        // fetchData();
-    }, []);
+        if (credentials === undefined)
+            return retrieve();
+        if (feed === undefined)
+            return fetchData();
+        if (alertShow) {
+            return wait(1500).then(() => setAlertShow(false));
+        }
+    }, [credentials, response, alertShow]);
 
     const search = async () => {
         if (text.trim() === "") return fetchData();
@@ -58,7 +79,24 @@ const ShopScreen = ({ navigation, route }) => {
         setRefreshing(false);
         setFilteredData(0);
     }
-
+    const addToCart = (id) => {
+        setAlertShow(false);
+        fetch(`${api_url}/api/shop/addToCart/${id}`, {
+            method: 'POST', // *GET, POST, PUT, DELETE, etc.
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${credentials.token}`
+            },
+        })
+            .then((re) => re.json())
+            .then((re) => {
+                if (!re.status) return navigation.navigate("LoginScreen");
+                setResponse(re.message);
+                setAlertShow(true);
+            })
+            .catch(error => console.error(error));
+    }
     const fetchData = async () => {
         setIsLoading(true);
         console.log(`${api_url}/api/shop`);
@@ -166,7 +204,10 @@ const ShopScreen = ({ navigation, route }) => {
                                         }}
                                     />
                                     <Text style={{ textAlign: "center" }} numberOfLines={2}>{item.name}</Text>
-                                    <TouchableOpacity style={styles.button}>
+                                    <TouchableOpacity style={styles.button} onPress={() => {
+                                        setAlertShow(false);
+                                        addToCart(item.product_id)
+                                    }}>
                                         <Text style={{ color: "white" }}>Add to Cart</Text>
                                     </TouchableOpacity>
                                 </View>
@@ -180,6 +221,14 @@ const ShopScreen = ({ navigation, route }) => {
                         ListHeaderComponent={header(navigation, brands)}
                     />)) : (<ActivityIndicator size="large" color="#0000ff" />)
             }
+
+            <FadeInOut visible={alertShow} duration={500} useNativeDriver={true} style={{ position: "absolute", bottom: 1, width: "100%", height:"10%", padding: 5, display:"flex", justifyContent:"center"}}>
+                <View style={{ width: "100%", backgroundColor: "#FFC300", padding:8 }}>
+                    <Text style={{ textAlign: "center", color: "black", fontSize:16 }}>
+                        Item added to cart!
+                    </Text>
+                </View>
+            </FadeInOut>
         </View>
     );
 }

@@ -1,6 +1,8 @@
-import { StyleSheet, Text, View, Button, FlatList, TouchableHighlight, TextInput, Image, TouchableOpacity, ScrollView, RefreshControl, ActivityIndicator, SafeAreaView } from 'react-native';
+import { StyleSheet, Text, View, Button, KeyboardAvoidingView, FlatList, TouchableHighlight, TextInput, Image, TouchableOpacity, ScrollView, RefreshControl, ActivityIndicator, SafeAreaView } from 'react-native';
 import React, { useState, useEffect } from 'react';
-import Ionicons from '@expo/vector-icons/Ionicons';
+import StarRating from 'react-native-star-rating';
+import * as SecureStore from 'expo-secure-store';
+import FadeInOut from 'react-native-fade-in-out';
 const api_url = "http://192.168.254.100:8000";
 
 const Product = ({ navigation, route }) => {
@@ -11,7 +13,23 @@ const Product = ({ navigation, route }) => {
     const [subHeaders, setSubHeaders] = useState([]);
     const [cols, setCols] = useState([]);
     const [reviews, setReviews] = useState([]);
-
+    const [credentials, setCredentials] = useState();
+    const [response, setResponse] = useState();
+    const [msg, setMsg] = useState();
+    const [alertShow, setAlertShow] = useState(false);
+    const [qty, setQty] = useState(1);
+    const [enabled, setEnabled] = useState(true);
+    const wait = (timeout) => {
+        return new Promise(resolve => setTimeout(resolve, timeout));
+    }
+    async function retrieve() {
+        let result = await SecureStore.getItemAsync("credentials");
+        try {
+            setCredentials(JSON.parse(result));
+        } catch (error) {
+            console.log("ERROR:", error);
+        }
+    }
     const onRefresh = React.useCallback(() => {
         setRefreshing(true);
         wait(1000).then(() => {
@@ -35,6 +53,41 @@ const Product = ({ navigation, route }) => {
             })
             .catch(error => console.error(error));
     }
+    const addToCart = (id) => {
+        setIsLoading(true);
+        setAlertShow(false);
+        setResponse();
+        if (qty === "" || qty === undefined) {
+            setAlertShow(true);
+            return setResponse("No input quantity.");
+        }
+        let details = {
+            "quantity": qty
+        }
+        var formBody = [];
+        for (var property in details) {
+            var encodedKey = encodeURIComponent(property);
+            var encodedValue = encodeURIComponent(details[property]);
+            formBody.push(encodedKey + "=" + encodedValue);
+        }
+        formBody = formBody.join("&");
+        fetch(`${api_url}/api/shop/addToCart/${id}`, {
+            method: 'POST', // *GET, POST, PUT, DELETE, etc.
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'Authorization': `Bearer ${credentials.token}`
+            },
+            body: formBody
+        })
+            .then((re) => re.json())
+            .then((re) => {
+                if (!re.status) return navigation.navigate("LoginScreen");
+                setResponse(re.message);
+                setAlertShow(true);
+            })
+            .catch(error => console.error(error));
+    }
 
     useEffect(() => {
         if (data === undefined)
@@ -51,20 +104,31 @@ const Product = ({ navigation, route }) => {
             }
             return;
         }
-
         if (subHeaders.length === 0 && cols.length !== 0) {
             cols.forEach((element, index) => {
                 if (typeof element !== "object") return console.log(element);
                 setSubHeaders(prevArray => [...prevArray, t(element)]);
             });
         }
-    }, [data, headers, cols, subHeaders]);
+        if (credentials === undefined)
+            return retrieve();
+        if (response !== undefined)
+            console.log(response);
+
+        if (alertShow) {
+            return wait(1500).then(() => setAlertShow(false));
+        }
+        if (isLoading)
+            setIsLoading(false);
+
+    }, [data, headers, cols, subHeaders, response, qty, alertShow]);
     let t = (i) => {
         if (typeof i !== "object") return i;
         for (const [key, val] of Object.entries(i)) {
             return key;
         }
     }
+
     function escapeRegExp(string) {
         return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
     }
@@ -152,18 +216,28 @@ const Product = ({ navigation, route }) => {
                                                                 <View style={{ width: "25%", paddingHorizontal: 10 }}>
                                                                     <Text style={{ fontSize: 14, marginTop: 3, fontWeight: "bold" }}>{replaceAll(replaceAll(replaceAll(replaceAll(replaceAll(v.user.name, "Dr.", ""), "Prof.", ""), "Mrs.", ""), "Ms.", ""), "Mr.", "").substr(0, v.user.name.indexOf(" ") + 2).trim()}.</Text>
                                                                 </View>
-                                                                <View style={{ flexShrink: 1, paddingHorizontal: 15 }}>
-                                                                    <View style={{ display: "flex", flex: 1, flexDirection: "row", width: "50%" }}>
-                                                                        <Ionicons name={(v.rating >= 1) ? ("star") : ("")} size={25} color={"#FF1818"} />
-                                                                        <Ionicons name={(v.rating >= 2) ? ("star") : ("star-outline")} size={25} color={"#FF1818"} />
-                                                                        <Ionicons name={(v.rating >= 3) ? ("star") : ("star-outline")} size={25} color={"#FF1818"} />
-                                                                        <Ionicons name={(v.rating >= 4) ? ("star") : ("star-outline")} size={25} color={"#FF1818"} />
-                                                                        <Ionicons name={(v.rating >= 5) ? ("star") : ("star-outline")} size={25} color={"#FF1818"} />
-                                                                    </View>
-                                                                    <Text style={{ textAlign: "justify" }}>
+                                                                <View style={{ flexShrink: 1, paddingHorizontal: 15, width: "100%", display: "flex", justifyContent: "flex-start" }}>
+                                                                    <StarRating
+                                                                        containerStyle={{ width: "100%", justifyContent: "center" }}
+                                                                        starStyle={{ marginHorizontal: 3 }}
+                                                                        starSize={25}
+                                                                        disabled={true}
+                                                                        maxStars={5}
+                                                                        rating={v.rating}
+                                                                        fullStarColor={'red'}
+                                                                        emptyStarColor={'red'}
+                                                                    />
+                                                                    <Text style={{ textAlign: "left" }}>
                                                                         {v.comment}
                                                                     </Text>
                                                                 </View>
+                                                                <View
+                                                                    style={{
+                                                                        borderBottomColor: 'black',
+                                                                        borderBottomWidth: 1,
+                                                                        opacity: 0.2
+                                                                    }}
+                                                                />
                                                             </View>
                                                         );
                                                     })
@@ -173,29 +247,32 @@ const Product = ({ navigation, route }) => {
                                     </View>
                                 </View>
                             </ScrollView>
-                            <View style={{ display: "flex", flex: 1, flexDirection: "row", minHeight: 50, width: "100%", flexGrow: 1, justifyContent: "center", paddingHorizontal:15, alignItems: "center", backgroundColor:"rgba(255, 255, 255, 0.01)" }}>
-                                <TouchableOpacity style={styles.button}>
+                            <View style={{ display: "flex", flex: 1, flexDirection: "row", minHeight: 50, width: "100%", flexGrow: 1, justifyContent: "center", paddingHorizontal: 15, alignItems: "center", backgroundColor: "rgba(255, 255, 255, 0.01)" }}>
+                                <TouchableOpacity style={styles.button} onPress={() => {
+                                    setAlertShow(false);
+                                    addToCart(data.product_id)
+                                }}>
                                     <Text style={{ color: "white" }}>Add to cart</Text>
                                 </TouchableOpacity>
-                                <TextInput style={{ paddingHorizontal: 5, height: 40, width: "15%" }} placeholder="QTY" keyboardType='numeric' />
+                                <TextInput style={{ paddingHorizontal: 5, height: 40, width: "15%" }} placeholder="QTY" keyboardType='numeric'
+                                    defaultValue={qty.toString()}
+                                    value={qty.toString()}
+                                    onChangeText={(newQty) => setQty(newQty)}
+                                />
                             </View>
+
+                            <FadeInOut visible={alertShow} duration={500} useNativeDriver={true} style={{ position: "absolute", top: 1, width: "100%", minHeight: "10%", padding: 5, display: "flex", justifyContent: "center" }}>
+                                <View style={response !== undefined || response !== "" ? (styles.warning) : styles.success}>
+                                    <Text style={response !== undefined ? (styles.warningTxt) : styles.success}>
+                                        {response !== undefined ? (response) : ("Item added to cart!")}
+                                    </Text>
+                                </View>
+                            </FadeInOut>
                         </View>
                     ) :
                     (<ActivityIndicator size="large" color="#0000ff" />)
             }
         </SafeAreaView>
-    );
-}
-
-let reviewRow = (value, key) => {
-    return (
-        <View style={{ display: "flex", flex: 1, flexDirection: "row" }}>
-            <Ionicons name={"star-outline"} size={25} color={"#FF1818"} />
-            <Ionicons name={"star-outline"} size={25} color={"#FF1818"} />
-            <Ionicons name={"star-outline"} size={25} color={"#FF1818"} />
-            <Ionicons name={"star-outline"} size={25} color={"#FF1818"} />
-            <Ionicons name={"star-outline"} size={25} color={"#FF1818"} />
-        </View>
     );
 }
 
@@ -208,6 +285,18 @@ const wait = (timeout) => {
 }
 
 const styles = StyleSheet.create({
+    success: {
+        width: "100%", backgroundColor: "#FFC300", padding: 8
+    },
+    warning: {
+        width: "100%", backgroundColor: "#FF1818", padding: 8
+    },
+    warningTxt: {
+        textAlign: "center", color: "white", fontSize: 16
+    },
+    successTxt: {
+        textAlign: "center", color: "black", fontSize: 16
+    },
     container: {
         flex: 1,
     },

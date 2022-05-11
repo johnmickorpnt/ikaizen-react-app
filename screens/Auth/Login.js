@@ -3,10 +3,15 @@ import React, { useState, useEffect, useLayoutEffect } from 'react';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import Dialog, { DialogContent } from 'react-native-popup-dialog';
 import * as SecureStore from 'expo-secure-store';
-import { isLoading } from 'expo-font';
+import { useIsFocused } from '@react-navigation/native';
+
 const api_url = "http://192.168.254.100:8000";
 
 const Login = ({ navigation, route }) => {
+    console.log(route.params)
+    // const { isFocused, onFocus, onBlur } = route.params.focused;
+    // const [focused, setFocused] = useState(false);
+
     const [email, setEmail] = useState();
     const [password, setPassword] = useState();
     const [loggingIn, setLoggingIn] = useState(false);
@@ -22,15 +27,21 @@ const Login = ({ navigation, route }) => {
     LogBox.ignoreLogs(['Warning: ...']); // Ignore log notification by message
     LogBox.ignoreAllLogs();//Ignore all log notifications
     useEffect(() => {
-        console.log(`error: "${error}", `, `is success? ${isSuccess}`);
-        if(isSuccess) return navigation.navigate("MainScreen");
+        const unsubscribe = navigation.addListener('focus', () => {
+            setEmail();
+            setPassword();
+            setError(false);
+            setErrorMsg();
+        });
+
+        if (isSuccess) return navigation.navigate("MainScreen");
         if (token !== undefined && user !== undefined) {
             return store();
         }
         if (!loggingIn) return false;
         loginAttempt(email, password);
         setLoggingIn(false);
-    }, [loggingIn, isSuccess, error, token, user])
+    }, [loggingIn, isSuccess, error, token, user, navigation])
 
     async function save(key, value) {
         await SecureStore.setItemAsync(key, value);
@@ -90,6 +101,7 @@ const Login = ({ navigation, route }) => {
             .catch(error => console.log(error));
         setIsSuccess(true);
     }
+
     return (
         <SafeAreaView style={styles.container}>
             {(loggingIn && (email !== "undefined" && email !== undefined && password !== undefined && password !== "undefined")) ? (<ActivityIndicator size="large" color="#0000ff" />) : (null)}

@@ -25,6 +25,7 @@
     "react-native-bouncy-checkbox": "^2.1.10",
     "react-native-bouncy-checkbox-group": "^0.1.0",
     "react-native-collapsible": "^1.6.0",
+    "react-native-fade-in-out": "^1.0.6",
     "react-native-fast-image": "^8.5.11",
     "react-native-popup-dialog": "^0.18.3",
     "react-native-reanimated": "~2.3.1",
@@ -34,6 +35,8 @@
     "react-native-select-multiple": "^2.1.0",
     "react-native-star-rating": "^1.1.0",
     "react-native-svg": "^12.3.0",
+    "react-native-swipe-gestures": "^1.0.5",
+    "react-native-swipe-list-view": "^3.2.9",
     "react-native-table-component": "^1.2.2",
     "react-native-web": "0.17.1"
   },
