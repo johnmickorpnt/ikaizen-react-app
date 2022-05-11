@@ -1,6 +1,7 @@
 import { StyleSheet, Text, View, Button, FlatList, TouchableHighlight, TextInput, Image, TouchableOpacity, ScrollView, RefreshControl, ActivityIndicator, SafeAreaView } from 'react-native';
 import React, { useState, useEffect } from 'react';
 import BouncyCheckbox from "react-native-bouncy-checkbox";
+import * as SecureStore from 'expo-secure-store';
 const api_url = "http://192.168.254.100:8000";
 
 const AddressList = ({ navigation, route }) => {
@@ -9,8 +10,17 @@ const AddressList = ({ navigation, route }) => {
     const [isLoading, setIsLoading] = useState(false);
     const [activeAddress, setActiveAddresses] = useState([]);
     const [selected, setSelected] = useState();
+    const [credentials, setCredentials] = useState();
     const wait = (timeout) => {
         return new Promise(resolve => setTimeout(resolve, timeout));
+    }
+    async function retrieve() {
+        let result = await SecureStore.getItemAsync("credentials")
+        try {
+            setCredentials(JSON.parse(result));
+        } catch (error) {
+            console.log("ERROR:", error);
+        }
     }
     const onRefresh = React.useCallback(() => {
         setRefreshing(true);
@@ -22,10 +32,12 @@ const AddressList = ({ navigation, route }) => {
     }, []);
     const fetchData = () => {
         setIsLoading(true);
-        fetch(api_url + `/api/user/201/addresses`, {
+        fetch(api_url + `/api/user/addresses`, {
             method: 'GET', // *GET, POST, PUT, DELETE, etc.
             headers: {
-                'Content-Type': 'application/json'
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${credentials.token}`
             },
         })
             .then((re) => re.json())
@@ -100,7 +112,7 @@ const AddressList = ({ navigation, route }) => {
                                 keyExtractor={(item) => item.id}
                                 renderItem={({ item, index }) => (
                                     <TouchableOpacity style={styles.addressRow}
-                                        onPress={()=> navigation.navigate("EditAddress", {id:item.id})}
+                                        onPress={() => navigation.navigate("EditAddress", { id: item.id })}
                                     >
                                         <View style={{ flex: 1, flexDirection: "row" }}>
                                             <BouncyCheckbox
