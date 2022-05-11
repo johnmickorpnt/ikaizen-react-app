@@ -39,8 +39,9 @@ const UserInfo = ({ navigation, route }) => {
         fetch(`${api_url}/api/user/`, {
             method: 'GET', // *GET, POST, PUT, DELETE, etc.
             headers: {
+                'Accept': 'application/json',
                 'Content-Type': 'application/json',
-                'Authorization':`Bearer ${credentials.token}`
+                'Authorization': `Bearer ${credentials.token}`
             },
         })
             .then((re) => re.json())
@@ -66,7 +67,7 @@ const UserInfo = ({ navigation, route }) => {
     async function logout() {
         await SecureStore.deleteItemAsync("credentials")
             .then(() => console.log("LOGGED OUT"))
-            .then(() => navigation.navigate("LoginScreen", {"focused" : true}))
+            .then(() => navigation.navigate("LoginScreen", { "focused": true }))
             .catch((error) => console.log(error));
     }
     useEffect(() => {
