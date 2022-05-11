@@ -2,7 +2,7 @@ import { StyleSheet, Text, View, Button, FlatList, TouchableHighlight, Dimension
 import React, { useState, useEffect } from 'react';
 import StarRating from 'react-native-star-rating';
 import Ionicons from '@expo/vector-icons/Ionicons';
-const api_url = "http://192.168.254.100:8000";
+const api_url = "https://8ceb-136-158-11-199.ap.ngrok.io";
 
 const Review = ({ navigation, route }) => {
     const [data, setData] = useState();

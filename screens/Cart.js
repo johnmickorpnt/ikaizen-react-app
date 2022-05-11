@@ -5,7 +5,7 @@ const Stack = createNativeStackNavigator();
 import CartScreen from './CartScreen';
 import ShopScreen from './ShopScreen';
 import CheckoutScreen from './CheckoutScreen'
-const api_url = "http://192.168.254.100:8000";
+const api_url = "https://8ceb-136-158-11-199.ap.ngrok.io";
 
 const Cart = ({ navigation, route }) => {
     return (

@@ -4,7 +4,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import SelectDropdown from 'react-native-select-dropdown'
 import * as SecureStore from 'expo-secure-store';
 import FadeInOut from 'react-native-fade-in-out';
-const api_url = "http://192.168.254.100:8000";
+const api_url = "https://8ceb-136-158-11-199.ap.ngrok.io";
 const wait = (timeout) => {
     return new Promise(resolve => setTimeout(resolve, timeout));
 }
@@ -133,7 +133,7 @@ const ShopScreen = ({ navigation, route }) => {
                 <Image
                     style={styles.mainLogo}
                     source={{
-                        uri: "http://192.168.254.100:8000/images/logo1-1.png",
+                        uri: "https://8ceb-136-158-11-199.ap.ngrok.io/images/logo1-1.png",
                     }}
                 />
                 <View style={{ padding: 10, flex: 1, flexDirection: "column", justifyContent: "center", alignItems: "center" }}>

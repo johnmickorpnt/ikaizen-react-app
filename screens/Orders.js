@@ -1,7 +1,8 @@
 import { StyleSheet, Text, View, Button, FlatList, TouchableHighlight, TextInput, Image, TouchableOpacity, ScrollView, RefreshControl, ActivityIndicator, SafeAreaView } from 'react-native';
 import React, { useState, useEffect } from 'react';
 import Ionicons from '@expo/vector-icons/Ionicons';
-const api_url = "http://192.168.254.100:8000";
+import * as SecureStore from 'expo-secure-store';
+const api_url = "https://8ceb-136-158-11-199.ap.ngrok.io";
 
 const Orders = ({ navigation, route }) => {
     const [data, setData] = useState();
@@ -9,8 +10,17 @@ const Orders = ({ navigation, route }) => {
     const [isLoading, setIsLoading] = useState(false);
     const [activeProd, setActive] = useState([]);
     const [temp, setTemp] = useState([]);
+    const [credentials, setCredentials] = useState();
     const wait = (timeout) => {
         return new Promise(resolve => setTimeout(resolve, timeout));
+    }
+    async function retrieve() {
+        let result = await SecureStore.getItemAsync("credentials")
+        try {
+            setCredentials(JSON.parse(result));
+        } catch (error) {
+            console.log("ERROR:", error);
+        }
     }
     const onRefresh = React.useCallback(() => {
         setRefreshing(true);
@@ -22,10 +32,11 @@ const Orders = ({ navigation, route }) => {
     }, []);
     const fetchData = () => {
         setIsLoading(true);
-        fetch(api_url + `/api/user/201/orders/`, {
+        fetch(`${api_url}/api/user/orders`, {
             method: 'GET', // *GET, POST, PUT, DELETE, etc.
             headers: {
-                'Content-Type': 'application/json'
+                'Accept': 'application/json',
+                'Authorization': `Bearer ${credentials.token}`
             },
         })
             .then((re) => re.json())
@@ -35,6 +46,8 @@ const Orders = ({ navigation, route }) => {
             .catch(error => console.error(error));
     }
     useEffect(() => {
+        if (credentials === undefined)
+            return retrieve();
         if (data === undefined)
             return fetchData();
         setIsLoading(false);
@@ -42,7 +55,7 @@ const Orders = ({ navigation, route }) => {
         data.forEach(element => {
             setActive(prevArray => [...prevArray, element.isActive]);
         })
-    }, [data, temp]);
+    }, [data, temp, credentials]);
 
     const header = () => {
         return (
@@ -103,20 +116,20 @@ const Orders = ({ navigation, route }) => {
                                             <Text>x{item.quantity}</Text>
                                             <Text style={{ fontWeight: "bold", color: "#FF1818" }}></Text>
                                             <Text style={{ textTransform: "capitalize" }}>{item.order_status}</Text>
-                                            {(item.isReviewed === 0) ? (null) : 
-                                            (temp[(index-1 < 0) ? (index) : (index-1)] === item.order_number) ? (
-                                                <View style={{ marginLeft: "auto", backgroundColor: "red" }}>
-                                                    <TouchableOpacity style={styles.button}
-                                                        onPress={() => navigation.navigate("ReviewsScreen", {id:item.order_id})}
-                                                    >
-                                                        <Text style={{ color: "white", textAlign: "center", width: "100%" }}>
-                                                            Review
-                                                        </Text>
-                                                    </TouchableOpacity>
-                                                </View>
-                                            ) : (
-                                                null
-                                            )}
+                                            {(item.isReviewed === 0) ? (null) :
+                                                (temp[(index - 1 < 0) ? (index) : (index - 1)] === item.order_number) ? (
+                                                    <View style={{ marginLeft: "auto", backgroundColor: "red" }}>
+                                                        <TouchableOpacity style={styles.button}
+                                                            onPress={() => navigation.navigate("ReviewsScreen", { id: item.order_id })}
+                                                        >
+                                                            <Text style={{ color: "white", textAlign: "center", width: "100%" }}>
+                                                                Review
+                                                            </Text>
+                                                        </TouchableOpacity>
+                                                    </View>
+                                                ) : (
+                                                    null
+                                                )}
                                         </View>
                                     </View>
                                 </TouchableOpacity>

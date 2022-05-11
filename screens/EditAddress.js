@@ -2,7 +2,7 @@ import { StyleSheet, Text, View, Button, FlatList, TouchableHighlight, TextInput
 import React, { useState, useEffect } from 'react';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import BouncyCheckbox from "react-native-bouncy-checkbox";
-const api_url = "http://192.168.254.100:8000";
+const api_url = "https://8ceb-136-158-11-199.ap.ngrok.io";
 
 const EditAddress = ({ navigation, route }) => {
     const [data, setData] = useState();

@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import StarRating from 'react-native-star-rating';
 import * as SecureStore from 'expo-secure-store';
 import FadeInOut from 'react-native-fade-in-out';
-const api_url = "http://192.168.254.100:8000";
+const api_url = "https://8ceb-136-158-11-199.ap.ngrok.io";
 
 const Product = ({ navigation, route }) => {
     const [data, setData] = useState();

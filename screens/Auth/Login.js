@@ -5,7 +5,7 @@ import Dialog, { DialogContent } from 'react-native-popup-dialog';
 import * as SecureStore from 'expo-secure-store';
 import { useIsFocused } from '@react-navigation/native';
 
-const api_url = "http://192.168.254.100:8000";
+const api_url = "https://8ceb-136-158-11-199.ap.ngrok.io";
 
 const Login = ({ navigation, route }) => {
     console.log(route.params)
@@ -122,7 +122,7 @@ const Login = ({ navigation, route }) => {
                 <Image
                     style={styles.mainLogo}
                     source={{
-                        uri: "http://192.168.254.100:8000/images/logo1-1-dark.png",
+                        uri: "https://8ceb-136-158-11-199.ap.ngrok.io/images/logo1-1-dark.png",
                     }}
                 />
             </View>

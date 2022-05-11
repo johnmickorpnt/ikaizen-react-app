@@ -2,7 +2,7 @@ import { StyleSheet, Text, View, Button, FlatList, TouchableHighlight, TextInput
 import React, { useState, useEffect } from 'react';
 import BouncyCheckbox from "react-native-bouncy-checkbox";
 import * as SecureStore from 'expo-secure-store';
-const api_url = "http://192.168.254.100:8000";
+const api_url = "https://8ceb-136-158-11-199.ap.ngrok.io";
 
 const AddressList = ({ navigation, route }) => {
     const [data, setData] = useState();
@@ -31,6 +31,7 @@ const AddressList = ({ navigation, route }) => {
         });
     }, []);
     const fetchData = () => {
+        if(credentials === undefined) return retrieve();
         setIsLoading(true);
         fetch(api_url + `/api/user/addresses`, {
             method: 'GET', // *GET, POST, PUT, DELETE, etc.
@@ -49,6 +50,7 @@ const AddressList = ({ navigation, route }) => {
     useEffect(() => {
         if (data === undefined)
             return fetchData();
+
         setIsLoading(false);
 
         if (data.length === activeAddress.length)
@@ -59,10 +61,10 @@ const AddressList = ({ navigation, route }) => {
             if (element.isActive === 1)
                 setSelected(element.id)
         });
-    }, [data, activeAddress, selected, credentials]);
+    }, [data, activeAddress, selected]);
     const save = () => {
         setIsLoading(true);
-        fetch(api_url + `/api/user/201/addresses/activate/${selected}`, {
+        fetch(api_url + `/api/user/addresses/activate/${selected}`, {
             method: 'PATCH', // *GET, POST, PUT, DELETE, etc.
             headers: {
                 'Content-Type': 'application/json'
