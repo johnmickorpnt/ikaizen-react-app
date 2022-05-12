@@ -4,7 +4,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import BouncyCheckbox from "react-native-bouncy-checkbox";
 import * as SecureStore from 'expo-secure-store';
 import { SwipeListView } from 'react-native-swipe-list-view';
-const api_url = "https://8ceb-136-158-11-199.ap.ngrok.io";
+const api_url = "http://192.168.254.100:8000";
 
 const CartScreen = ({ navigation, route }) => {
     const [data, setData] = useState();
@@ -66,9 +66,6 @@ const CartScreen = ({ navigation, route }) => {
             .catch(error => console.error(error));
     }
     useEffect(() => {
-        const unsubscribe = navigation.addListener('focus', () => {
-            setData();
-        });
         if (credentials === undefined)
             return retrieve();
 

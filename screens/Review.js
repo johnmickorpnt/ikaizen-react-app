@@ -1,8 +1,8 @@
 import { StyleSheet, Text, View, Button, FlatList, TouchableHighlight, Dimensions, TextInput, Image, TouchableOpacity, ScrollView, RefreshControl, ActivityIndicator, SafeAreaView } from 'react-native';
 import React, { useState, useEffect } from 'react';
 import StarRating from 'react-native-star-rating';
-import Ionicons from '@expo/vector-icons/Ionicons';
-const api_url = "https://8ceb-136-158-11-199.ap.ngrok.io";
+import * as SecureStore from 'expo-secure-store';
+const api_url = "http://192.168.254.100:8000";
 
 const Review = ({ navigation, route }) => {
     const [data, setData] = useState();
@@ -10,8 +10,17 @@ const Review = ({ navigation, route }) => {
     const [isLoading, setIsLoading] = useState(false);
     const [rating, setRating] = useState();
     const [ratings, setRatings] = useState([]);
+    const [credentials, setCredentials] = useState();
     const wait = (timeout) => {
         return new Promise(resolve => setTimeout(resolve, timeout));
+    }
+    async function retrieve() {
+        let result = await SecureStore.getItemAsync("credentials")
+        try {
+            setCredentials(JSON.parse(result));
+        } catch (error) {
+            console.log("ERROR:", error);
+        }
     }
     const onRefresh = React.useCallback(() => {
         setRefreshing(true);
@@ -23,10 +32,12 @@ const Review = ({ navigation, route }) => {
 
     const fetchData = () => {
         setIsLoading(true);
-        fetch(`${api_url}/api/user/201/orders/${route.params.id}/review`, {
+        retrieve();
+        fetch(`${api_url}/api/user/orders/${route.params.id}/review`, {
             method: 'GET', // *GET, POST, PUT, DELETE, etc.
             headers: {
-                'Content-Type': 'application/json'
+                'Accept': 'application/json',
+                'Authorization': `Bearer ${credentials.token}`
             },
         })
             .then((re) => re.json())
@@ -37,14 +48,16 @@ const Review = ({ navigation, route }) => {
     }
 
     useEffect(() => {
+        if(credentials === undefined) return retrieve();
         if (data === undefined)
             return fetchData();
+
         if (ratings.length === data.length) return;
         data.forEach(element => {
             setRatings(prevArr => [...prevArr, 5])
         })
         setIsLoading(false);
-    }, [data]);
+    }, [data, credentials]);
 
     const header = () => {
         return (
@@ -100,8 +113,8 @@ const Review = ({ navigation, route }) => {
                                         <View style={{ width: "100%", flex: 1, alignItems: "center" }}>
                                             <View style={{ display: "flex", flex: 1, flexDirection: "row", maxHeight: 45, alignItems: "center", flexShrink: 1, width: "100%", justifyContent: "space-between", paddingHorizontal: 15 }}>
                                                 <StarRating
-                                                    containerStyle={{width:"100%", justifyContent:"center"}}
-                                                    starStyle={{marginHorizontal:3}}
+                                                    containerStyle={{ width: "100%", justifyContent: "center" }}
+                                                    starStyle={{ marginHorizontal: 3 }}
                                                     disabled={false}
                                                     maxStars={5}
                                                     rating={ratings[index]}

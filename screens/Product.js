@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import StarRating from 'react-native-star-rating';
 import * as SecureStore from 'expo-secure-store';
 import FadeInOut from 'react-native-fade-in-out';
-const api_url = "https://8ceb-136-158-11-199.ap.ngrok.io";
+const api_url = "http://192.168.254.100:8000";
 
 const Product = ({ navigation, route }) => {
     const [data, setData] = useState();
@@ -98,6 +98,7 @@ const Product = ({ navigation, route }) => {
                 setHeaders(prevArray => [...prevArray, key]);
             return;
         }
+        console.log(headers)
         if (cols.length === 0) {
             for (const [key, val] of Object.entries(JSON.parse(data.description))) {
                 setCols(prevArray => [...prevArray, val]);
@@ -110,6 +111,7 @@ const Product = ({ navigation, route }) => {
                 setSubHeaders(prevArray => [...prevArray, t(element)]);
             });
         }
+
         if (credentials === undefined)
             return retrieve();
         if (response !== undefined)

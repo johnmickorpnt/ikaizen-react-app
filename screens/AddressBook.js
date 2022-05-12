@@ -1,25 +1,32 @@
 import { StyleSheet, Text, View, Button, FlatList, TouchableHighlight, TextInput, Image, TouchableOpacity, ScrollView, RefreshControl, ActivityIndicator, SafeAreaView } from 'react-native';
 import React, { useState, useEffect } from 'react';
-import Ionicons from '@expo/vector-icons/Ionicons';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import AddressList from './AddressList';
-import EditAddress from './EditAddress';
+import AddressForm from './AddressForm';
 const Stack = createNativeStackNavigator();
-const api_url = "https://8ceb-136-158-11-199.ap.ngrok.io";
+const api_url = "http://192.168.254.100:8000";
 
 
 const AddressBook = ({ navigation, route }) => {
-    
+    const [initRoute, setInitRoute] = useState();
+    useEffect(() => {
+        const unsubscribe = navigation.addListener('focus', () => {
+            console.log("address book");
+            setInitRoute("AddressList")
+        });
+        return unsubscribe;
+    }, [navigation]);
     return (
         <Stack.Navigator
-            screenOptions={{headerShown:false}}>
+            initialRouteName='AddressList'
+            screenOptions={{ headerShown: false }}>
             <Stack.Screen
-                name="AdressList"
+                name="AddressList"
                 component={AddressList}
             />
-            <Stack.Screen 
-                name="EditAddress"
-                component={EditAddress}
+            <Stack.Screen
+                name="AddressForm"
+                component={AddressForm}
             />
         </Stack.Navigator>
     );

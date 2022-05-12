@@ -2,13 +2,15 @@ import { StyleSheet, Text, View, Button, FlatList, TouchableHighlight, TextInput
 import React, { useState, useEffect } from 'react';
 import BouncyCheckbox from "react-native-bouncy-checkbox";
 import * as SecureStore from 'expo-secure-store';
-const api_url = "https://8ceb-136-158-11-199.ap.ngrok.io";
+import { SwipeListView } from 'react-native-swipe-list-view';
+const api_url = "http://192.168.254.100:8000";
+import Ionicons from '@expo/vector-icons/Ionicons';
 
 const AddressList = ({ navigation, route }) => {
     const [data, setData] = useState();
     const [refreshing, setRefreshing] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
-    const [activeAddress, setActiveAddresses] = useState([]);
+    const [activeAddress, setActiveAddress] = useState();
     const [selected, setSelected] = useState();
     const [credentials, setCredentials] = useState();
     const wait = (timeout) => {
@@ -24,14 +26,15 @@ const AddressList = ({ navigation, route }) => {
     }
     const onRefresh = React.useCallback(() => {
         setRefreshing(true);
-        setActiveAddresses([]);
+        // setActiveAddresses([]);
         wait(1000).then(() => {
             fetchData();
             setRefreshing(false);
         });
     }, []);
+
     const fetchData = () => {
-        if(credentials === undefined) return retrieve();
+        if (credentials === undefined) return retrieve();
         setIsLoading(true);
         fetch(api_url + `/api/user/addresses`, {
             method: 'GET', // *GET, POST, PUT, DELETE, etc.
@@ -43,46 +46,53 @@ const AddressList = ({ navigation, route }) => {
         })
             .then((re) => re.json())
             .then((re) => {
-                setData((re.length > 0) ? (re) : (0));
+                setData((re.length > 0) ? (re[0]) : (0));
+                setSelected(re[1]);
             })
             .catch(error => console.error(error));
     }
+
     useEffect(() => {
+        if (credentials === undefined)
+            return retrieve();
+
         if (data === undefined)
             return fetchData();
-
         setIsLoading(false);
+    }, [data, activeAddress, selected, credentials]);
 
-        if (data.length === activeAddress.length)
-            return console.log(selected)
-
-        data.forEach((element, index) => {
-            setActiveAddresses(prevArr => [...prevArr, element.isActive]);
-            if (element.isActive === 1)
-                setSelected(element.id)
-        });
-    }, [data, activeAddress, selected]);
     const save = () => {
+        setSelected();
         setIsLoading(true);
         fetch(api_url + `/api/user/addresses/activate/${selected}`, {
             method: 'PATCH', // *GET, POST, PUT, DELETE, etc.
             headers: {
-                'Content-Type': 'application/json'
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${credentials.token}`
             },
         })
             .then((re) => re.json())
             .then((re) => {
-                setData(re);
-                setIsLoading(false);
+                // console.log(re[1])
+                setData((re.length > 0) ? (re[0]) : (0));
+                setSelected(re[1]);
+                wait(700).then(() => setIsLoading(false));
             })
             .catch(error => console.error(error));
     }
     const header = () => {
         return (
-            <View style={{ paddingTop: 32 }}>
+            <View style={{ paddingTop: 32, display: "flex", flexDirection: "row", justifyContent: "center", alignItems: "center", margin:5 }}>
                 <Text style={{ fontWeight: "bold", fontSize: 24, textAlign: "center" }}>
-                    Address Book
+                    Address Book 
                 </Text>
+                <TouchableOpacity style={{ marginLeft: "auto", display: "flex", flexDirection: "row", alignItems: "center", backgroundColor:"red", padding:8, borderRadius:5}}
+                onPress={() => navigation.navigate("AddressForm", {"header":"Add an Address"})}>
+                    <Text style={{fontSize:14, color:"white"}}>
+                        Add an Address
+                    </Text>
+                </TouchableOpacity>
             </View>
         );
     }
@@ -96,9 +106,6 @@ const AddressList = ({ navigation, route }) => {
             </View>
         );
     }
-    const updateCheck = (index) => {
-        setSelected(index);
-    }
     return (
         <View style={styles.container}>
             {(isLoading && !refreshing) ?
@@ -110,18 +117,19 @@ const AddressList = ({ navigation, route }) => {
                             <Text style={{ fontSize: 28, fontWeight: "bold" }}>No Address</Text>
                         ) :
                         (
-                            <FlatList data={data}
+                            <SwipeListView data={data}
                                 keyExtractor={(item) => item.id}
                                 renderItem={({ item, index }) => (
                                     <TouchableOpacity style={styles.addressRow}
-                                        onPress={() => navigation.navigate("EditAddress", { id: item.id })}
+                                        onPress={() => navigation.navigate("AddressForm", { id: item.id, "header":"Edit an Address" })}
+                                        activeOpacity={1}
                                     >
                                         <View style={{ flex: 1, flexDirection: "row" }}>
                                             <BouncyCheckbox
                                                 size={18}
                                                 isChecked={((item.id === selected) ? (true) : (false))}
                                                 fillColor={"black"}
-                                                onPress={() => updateCheck(item.id)}
+                                                onPress={() => setSelected(item.id)}
                                                 disableBuiltInState
                                             />
                                             <View style={{ flexShrink: 1 }}>
@@ -132,10 +140,29 @@ const AddressList = ({ navigation, route }) => {
                                         </View>
                                     </TouchableOpacity>
                                 )}
+
                                 contentContainerStyle={{ flexGrow: 1, paddingVertical: 24, paddingHorizontal: 20 }}
                                 ListHeaderComponent={header}
                                 ListFooterComponent={footer}
                                 ListFooterComponentStyle={{ flex: 1, justifyContent: "flex-end" }}
+                                renderHiddenItem={(data, rowMap) => (
+                                    <View style={{ width: "100%", height: "100%", display: "flex", alignItems: "flex-end", justifyContent: "center" }}>
+                                        <View style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: 12, width: "40%" }}>
+                                            <View style={{
+                                                display: "flex", flexDirection: "row", margin: 5, justifyContent: "center", alignItems: "center", width: "100%"
+                                            }}>
+                                                <TouchableOpacity style={{ backgroundColor: "red", padding: 12, margin: 5, borderRadius: 5, width: "75%", height: "100%", display: "flex", justifyContent: "center" }}>
+                                                    <Text style={{ color: "white", textAlign: "center" }}>
+                                                        Delete
+                                                    </Text>
+                                                </TouchableOpacity>
+                                            </View>
+                                        </View>
+                                    </View>
+                                )}
+                                disableRightSwipe={true}
+                                leftOpenValue={75}
+                                rightOpenValue={-170}
                                 refreshControl={
                                     <RefreshControl
                                         refreshing={refreshing}
@@ -216,7 +243,8 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderRadius: 5,
         paddingVertical: 18,
-        paddingHorizontal: 8
+        paddingHorizontal: 8,
+        backgroundColor: "white"
     }
 });
 

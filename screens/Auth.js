@@ -30,7 +30,7 @@ const Auth = () => {
             setIsLoading(true);
             return retrieve();
         }
-        wait(500).then(() => setIsLoading(false))
+        wait(500).then(() => setIsLoading(false));
         console.log(credentials, loading);
         if (!loading)
             console.log(credentials, loading);

@@ -1,14 +1,12 @@
 import { StyleSheet, BackHandler, LogBox, Text, View, Button, FlatList, TouchableHighlight, TextInput, Image, TouchableOpacity, ScrollView, RefreshControl, ActivityIndicator, SafeAreaView, KeyboardAvoidingView } from 'react-native';
 import React, { useState, useEffect, useLayoutEffect } from 'react';
-import Ionicons from '@expo/vector-icons/Ionicons';
 import Dialog, { DialogContent } from 'react-native-popup-dialog';
 import * as SecureStore from 'expo-secure-store';
 import { useIsFocused } from '@react-navigation/native';
 
-const api_url = "https://8ceb-136-158-11-199.ap.ngrok.io";
+const api_url = "http://192.168.254.100:8000";
 
 const Login = ({ navigation, route }) => {
-    console.log(route.params)
     // const { isFocused, onFocus, onBlur } = route.params.focused;
     // const [focused, setFocused] = useState(false);
 
@@ -27,13 +25,6 @@ const Login = ({ navigation, route }) => {
     LogBox.ignoreLogs(['Warning: ...']); // Ignore log notification by message
     LogBox.ignoreAllLogs();//Ignore all log notifications
     useEffect(() => {
-        const unsubscribe = navigation.addListener('focus', () => {
-            setEmail();
-            setPassword();
-            setError(false);
-            setErrorMsg();
-        });
-
         if (isSuccess) return navigation.navigate("MainScreen");
         if (token !== undefined && user !== undefined) {
             return store();
@@ -41,6 +32,8 @@ const Login = ({ navigation, route }) => {
         if (!loggingIn) return false;
         loginAttempt(email, password);
         setLoggingIn(false);
+
+        
     }, [loggingIn, isSuccess, error, token, user, navigation])
 
     async function save(key, value) {
@@ -75,6 +68,7 @@ const Login = ({ navigation, route }) => {
             formBody.push(encodedKey + "=" + encodedValue);
         }
         formBody = formBody.join("&");
+        console.log(formBody);
         const response = await fetch(`${api_url}/api/login`, {
             headers: {
                 'Accept': 'application/json',
@@ -122,7 +116,7 @@ const Login = ({ navigation, route }) => {
                 <Image
                     style={styles.mainLogo}
                     source={{
-                        uri: "https://8ceb-136-158-11-199.ap.ngrok.io/images/logo1-1-dark.png",
+                        uri: "http://192.168.254.100:8000/images/logo1-1-dark.png",
                     }}
                 />
             </View>
@@ -160,12 +154,14 @@ const Login = ({ navigation, route }) => {
                         style={styles.plainBtn}
                         onPress={() => navigation.navigate("RegisterScreen")}
                     >
-                        <Text style={{ color: "black", textAlign: "center", textDecorationLine: "underline" }}>Don't have an account? Register now!</Text>
+                        <Text style={{ color: "black", textAlign: "center", textDecorationLine: "underline" }}>
+                            Don't have an account? Register now!
+                        </Text>
                     </TouchableOpacity>
-                    <TouchableOpacity
+                    {/* <TouchableOpacity
                         style={styles.plainBtn}>
                         <Text style={{ color: "black", textAlign: "center" }}>Forgot password?</Text>
-                    </TouchableOpacity>
+                    </TouchableOpacity> */}
                 </View>
             </View>
         </SafeAreaView>

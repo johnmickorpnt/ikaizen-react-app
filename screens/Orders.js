@@ -2,7 +2,7 @@ import { StyleSheet, Text, View, Button, FlatList, TouchableHighlight, TextInput
 import React, { useState, useEffect } from 'react';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import * as SecureStore from 'expo-secure-store';
-const api_url = "https://8ceb-136-158-11-199.ap.ngrok.io";
+const api_url = "http://192.168.254.100:8000";
 
 const Orders = ({ navigation, route }) => {
     const [data, setData] = useState();
@@ -26,11 +26,12 @@ const Orders = ({ navigation, route }) => {
         setRefreshing(true);
         setActive([]);
         wait(1000).then(() => {
-            fetchData();
+            retrieve().then(() => fetchData());
             setRefreshing(false);
         });
     }, []);
     const fetchData = () => {
+        if(credentials === undefined) return retrieve();
         setIsLoading(true);
         fetch(`${api_url}/api/user/orders`, {
             method: 'GET', // *GET, POST, PUT, DELETE, etc.
@@ -41,6 +42,7 @@ const Orders = ({ navigation, route }) => {
         })
             .then((re) => re.json())
             .then((re) => {
+                // console.log(re)
                 setData((re.length > 0) ? (re) : (0));
             })
             .catch(error => console.error(error));
@@ -120,7 +122,10 @@ const Orders = ({ navigation, route }) => {
                                                 (temp[(index - 1 < 0) ? (index) : (index - 1)] === item.order_number) ? (
                                                     <View style={{ marginLeft: "auto", backgroundColor: "red" }}>
                                                         <TouchableOpacity style={styles.button}
-                                                            onPress={() => navigation.navigate("ReviewsScreen", { id: item.order_id })}
+                                                            onPress={() => {
+                                                                navigation.navigate("ReviewsScreen", { "id": item.order_id })
+                                                                // console.log(item.order_id)
+                                                            }}
                                                         >
                                                             <Text style={{ color: "white", textAlign: "center", width: "100%" }}>
                                                                 Review

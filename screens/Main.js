@@ -41,7 +41,8 @@ const Main = () => {
                     return <Ionicons name={iconName} size={size} color={"#FF1818"} />;
                 },
                 headerShown: false,
-                tabBarShowLabel: false
+                tabBarShowLabel: false,
+                unmountOnBlur:true
             })}>
             <Tab.Screen name="Home" component={HomeScreen} />
             <Tab.Screen name="Shop" component={Shop} />

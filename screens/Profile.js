@@ -1,6 +1,6 @@
 import { StyleSheet, Text, View, Button, SafeAreaView } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-
+import React, { useState, useEffect } from 'react';
 import UserInfo from './UserInfo';
 import AddressBook from './AddressBook';
 import Orders from './Orders';
@@ -8,8 +8,14 @@ import Review from './Review';
 
 const Stack = createNativeStackNavigator();
 const ProfileScreen = ({ navigation, route }) => {
+    useEffect(() =>{
+        const unsubscribe = navigation.addListener('focus', () => {
+            console.log("restart");
+        });
+        return unsubscribe;
+    }, [navigation])
     return (
-        <Stack.Navigator screenOptions={{headerShown:false}} initialRouteName={"Profile"}>
+        <Stack.Navigator screenOptions={{headerShown:false}}>
             <Stack.Screen
                 name="UserInfo"
                 component={UserInfo}

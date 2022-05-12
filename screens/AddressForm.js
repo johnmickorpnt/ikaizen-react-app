@@ -2,16 +2,38 @@ import { StyleSheet, Text, View, Button, FlatList, TouchableHighlight, TextInput
 import React, { useState, useEffect } from 'react';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import BouncyCheckbox from "react-native-bouncy-checkbox";
-const api_url = "https://8ceb-136-158-11-199.ap.ngrok.io";
+const api_url = "http://192.168.254.100:8000";
 
-const EditAddress = ({ navigation, route }) => {
+const AddressForm = ({ navigation, route }) => {
     const [data, setData] = useState();
+    const [firstName, setFirstName] = useState();
+    const [lastName, setLastName] = useState();
+    const [contactNumber, setContactNumber] = useState();
+    const [city, setCity] = useState();
+    const [barangay, setBarangay] = useState();
+    const [blockAndLot, setBlockAndLot] = useState();
+    const [zip, setZip] = useState();
+
     useEffect(() => {
-        if (data === "undefined" || data === undefined)
+        const unsubscribe = navigation.addListener('focus', () => {
+            setFirstName();
+            setLastName();
+            setContactNumber();
+            setCity();
+            setBarangay();
+            setBlockAndLot();
+            setZip();
+        });
+
+        if(route.params.id === undefined) return setData(0);
+
+        if (data === "undefined" || data === undefined && route.params.id !== undefined)
             return fetchData(route.params.id);
+        
         console.log(data);
-    }, [data]);
+    }, [data, navigation]);
     const fetchData = (id) => {
+        console.log("GJAHJH")
         fetch(api_url + `/api/user/201/addresses/edit/${id}`, {
             method: 'GET', // *GET, POST, PUT, DELETE, etc.
             headers: {
@@ -29,46 +51,46 @@ const EditAddress = ({ navigation, route }) => {
             {data !== undefined ?
                 (< View style={{ flex: 1, flexShrink: 1, padding: 15, justifyContent: "center", alignItems: "center" }}>
                     <Text style={{ fontSize: 23, fontWeight: "bold", textAlign: "center", marginTop: 30 }}>
-                        Edit Address Book
+                        {route.params.header}
                     </Text>
                     <TextInput
                         placeholder="First Name"
                         style={styles.input}
-                        value={data.first_name}
+                        value={data.first_name !== undefined ? data.first_name : ""}
                     />
                     <TextInput
                         placeholder="Last Name"
                         style={styles.input}
-                        value={data.last_name}
+                        value={data.last_name !== undefined ? data.last_name : ""}
                     />
                     <TextInput
                         placeholder="Contact Number"
                         keyboardType="numeric"
                         style={styles.input}
-                        value={data.contact_number}
+                        value={data.contact_number !== undefined ? data.contact_number : "" }
                     />
                     <TextInput
                         placeholder="City/Province"
                         style={styles.input}
-                        value={data.city}
+                        value={data.city !== undefined ? data.city : ""}
                     />
                     <TextInput
                         placeholder="Barangay"
                         style={styles.input}
-                        value={data.barangay}
+                        value={data.barangay !== undefined ? data.barangay : ""}
                     />
                     <TextInput
                         placeholder="Block and Lot"
                         style={styles.input}
-                        value={data.street_block}
+                        value={data.street_block !== undefined ? data.street_block : ""}
                     />
                     <TextInput
                         placeholder="Zip"
                         style={styles.input}
-                        value={data.zip}
+                        value={data.zip !== undefined ? data.zip : ""}
                     />
-                    <View style={{flex:1, alignItems:"center", flexDirection:"row", justifyContent:"flex-end"}}>
-                        <TouchableOpacity style={styles.plainBtn} onPress={() => navigation.navigate("UserInfo")}>
+                    <View style={{ flex: 1, alignItems: "center", flexDirection: "row", justifyContent: "flex-end" }}>
+                        <TouchableOpacity style={styles.plainBtn} onPress={() => navigation.navigate("AddressList")}>
                             <Text>
                                 Cancel
                             </Text>
@@ -156,4 +178,4 @@ const styles = StyleSheet.create({
         paddingHorizontal: 8
     }
 });
-export default EditAddress;
+export default AddressForm;
