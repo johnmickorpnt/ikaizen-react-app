@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, Button, FlatList, TouchableHighlight, TextInput, Image, TouchableOpacity, ScrollView, RefreshControl, ActivityIndicator, SafeAreaView } from 'react-native';
+import { StyleSheet, Text, View, Alert, FlatList, TouchableHighlight, TextInput, Image, TouchableOpacity, ScrollView, RefreshControl, ActivityIndicator, SafeAreaView } from 'react-native';
 import React, { useState, useEffect } from 'react';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import * as SecureStore from 'expo-secure-store';
@@ -25,11 +25,12 @@ const Orders = ({ navigation, route }) => {
     const onRefresh = React.useCallback(() => {
         setRefreshing(true);
         setActive([]);
+        setTemp([]);
         wait(1000).then(() => {
             retrieve().then(() => fetchData());
             setRefreshing(false);
         });
-    }, []);
+    }, [data]);
     const fetchData = () => {
         if (credentials === undefined) return retrieve();
         setIsLoading(true);
@@ -97,7 +98,7 @@ const Orders = ({ navigation, route }) => {
                 (
                     (data !== 0) ? (
                         <FlatList data={data}
-                            keyExtractor={(item) => item.product_id}
+                            // keyExtractor={(item) => item.product_id + item.order_number}
                             extraData={temp}
                             renderItem={({ item, index }) => (
                                 <TouchableOpacity style={{ display: "flex", flexShrink: 1, flex: 1, maxHeight: "90%" }}
@@ -117,23 +118,47 @@ const Orders = ({ navigation, route }) => {
                                             <Text>x{item.quantity}</Text>
                                             <Text style={{ fontWeight: "bold", color: "#FF1818" }}></Text>
                                             <Text style={{ textTransform: "capitalize" }}>{item.order_status}</Text>
-                                            {(!item.isReviewed && item.order_status === "completed") ? (
-                                                temp[(index - 1 < 0) ? (index) : (index - 1)] === item.order_number) ? (
-                                                <View style={{ marginLeft: "auto", backgroundColor: "red" }}>
-                                                    <TouchableOpacity style={styles.button}
-                                                        onPress={() => {
-                                                            navigation.navigate("ReviewsScreen", { "id": item.order_id })
-                                                        }}
-                                                    >
-                                                        <Text style={{ color: "white", textAlign: "center", width: "100%" }}>
-                                                            Review
-                                                        </Text>
-                                                    </TouchableOpacity>
-                                                </View>
-                                            ) :
-                                                (null) : (
-                                                null
-                                            )}
+                                            {
+                                                (temp[index + 1 > data.length ? index : index + 1] !== item.order_number) ?
+                                                    (!item.isReviewed && item.order_status === "completed" ? (
+                                                        <View style={{ marginLeft: "auto", backgroundColor: "red" }}>
+                                                            <TouchableOpacity style={styles.button}
+                                                                onPress={() => {
+                                                                    navigation.navigate("ReviewsScreen", { "id": item.order_id })
+                                                                }}
+                                                            >
+                                                                <Text style={{ color: "white", textAlign: "center", width: "100%" }}>
+                                                                    Review
+                                                                </Text>
+                                                            </TouchableOpacity>
+                                                        </View>
+                                                    ) :
+                                                        (item.order_status === "processing" ?
+                                                            (<View style={{ marginLeft: "auto" }}>
+                                                                <TouchableOpacity style={styles.cancelBtn}
+                                                                    onPress={() => {
+                                                                        Alert.alert(
+                                                                            "Confirm cancel order",
+                                                                            "Are you sure to cancel this order?",
+                                                                            [
+                                                                                {
+                                                                                    text: "Cancel",
+                                                                                    onPress: () => console.log("Cancel Pressed"),
+                                                                                    style: "cancel"
+                                                                                },
+                                                                                { text: "OK", onPress: () => navigation.navigate("CheckoutScreen") }
+                                                                            ]
+                                                                        );
+                                                                    }}
+                                                                >
+                                                                    <Text style={{ color: "black", textAlign: "center", width: "100%" }}>
+                                                                        Cancel
+                                                                    </Text>
+                                                                </TouchableOpacity>
+                                                            </View>) :
+                                                            (null))) :
+                                                    (null)
+                                            }
                                         </View>
                                     </View>
                                 </TouchableOpacity>
@@ -202,6 +227,18 @@ const styles = StyleSheet.create({
         alignItems: "center",
         backgroundColor: "#FF1818",
         width: "50%",
+        padding: 10,
+        borderRadius: 5,
+        display: "flex",
+        flex: 1,
+        flexDirection: "row",
+        justifyContent: "center",
+        alignItems: "center"
+    },
+    cancelBtn: {
+        alignItems: "center",
+        width: "50%",
+        backgroundColor: "#FFC300",
         padding: 10,
         borderRadius: 5,
         display: "flex",

@@ -117,7 +117,7 @@ const Login = ({ navigation, route }) => {
                 <Image
                     style={styles.mainLogo}
                     source={{
-                        uri: "http://192.168.254.100:8000/images/logo1-1-dark.png",
+                        uri: `${api_url}/images/logo1-1-dark.png`,
                     }}
                 />
             </View>

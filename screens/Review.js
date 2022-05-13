@@ -3,15 +3,21 @@ import React, { useState, useEffect } from 'react';
 import StarRating from 'react-native-star-rating';
 import * as SecureStore from 'expo-secure-store';
 const api_url = "http://192.168.254.100:8000";
+import Dialog, { DialogContent } from 'react-native-popup-dialog';
 
 const Review = ({ navigation, route }) => {
     const [data, setData] = useState();
     const [refreshing, setRefreshing] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
-    const [ids, setIds] = useState(false);
+    const [ids, setIds] = useState([]);
     const [ratings, setRatings] = useState([]);
     const [feedback, setFeedback] = useState([]);
     const [credentials, setCredentials] = useState();
+    const [order] = useState(route.params.id);
+    const [errorMsg, setErrorMsg] = useState();
+    const [dialogVisible, setDialogVisible] = useState(false);
+    const [error, setError] = useState(false);
+
     const wait = (timeout) => {
         return new Promise(resolve => setTimeout(resolve, timeout));
     }
@@ -33,8 +39,8 @@ const Review = ({ navigation, route }) => {
 
     const fetchData = () => {
         setIsLoading(true);
-        retrieve();
-        fetch(`${api_url}/api/user/orders/${route.params.id}/review`, {
+        if (credentials === undefined) return retrieve();
+        fetch(`${api_url}/api/user/orders/${order}/review`, {
             method: 'GET', // *GET, POST, PUT, DELETE, etc.
             headers: {
                 'Accept': 'application/json',
@@ -43,13 +49,52 @@ const Review = ({ navigation, route }) => {
         })
             .then((re) => re.json())
             .then((re) => {
-                setData((re.length > 0) ? (re) : (0));
+                setData((re.length > 0) ? (re[0]) : (0));
+                console.log(re[1]);
+                setIds(re[1]);
             })
             .catch(error => console.error(error));
     }
 
+    const saveReview = async () => {
+        setIsLoading(true);
+        console.log("SAVING IN");
+        setError(false);
+        let t = {
+            "ratings[]": ratings,
+            "feedBack[]": feedback,
+            "ids[]": ids
+        };
+        let y = {
+            "ratings": ratings,
+            "feedBack": feedback,
+            "ids": ids
+        };
+        var formBody = [];
+
+        for (var property in t) {
+            var encodedKey = encodeURIComponent(property);
+            var encodedValue = encodeURIComponent(t[property]);
+            formBody.push(encodedKey + "=" + encodedValue);
+        }
+        formBody = formBody.join("&");
+        let response = await fetch(`${api_url}/api/user/orders/${order}/review`, {
+            method: 'POST', // *GET, POST, PUT, DELETE, etc.
+            headers: {
+                'Accept': 'application/x-www-form-urlencoded',
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'Authorization': `Bearer ${credentials.token}`
+            },
+            body: formBody
+        });
+        if (response.status === 200) {
+            setDialogVisible(true);
+        }
+        setIsLoading(false);
+
+    }
+
     useEffect(() => {
-        if(credentials === undefined) return retrieve();
         if (data === undefined)
             return fetchData();
 
@@ -58,14 +103,15 @@ const Review = ({ navigation, route }) => {
             setRatings(prevArr => [...prevArr, 5])
         });
 
-        data.forEach(element =>{
+        data.forEach(element => {
             setFeedback(prevArr => [...prevArr, ""])
         });
 
+        if (ids.length === data.length)
+            console.log(ids);
         setIsLoading(false);
-        console.log(feedback);
-        
-    }, [data, credentials, feedback]);
+
+    }, [data, credentials, ids]);
 
     const header = () => {
         return (
@@ -98,7 +144,8 @@ const Review = ({ navigation, route }) => {
                     onPress={() => navigation.navigate("OrdersScreen")}>
                     <Text>Cancel</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.button}>
+                <TouchableOpacity style={styles.button}
+                    onPress={saveReview}>
                     <Text style={{ color: "white" }}>Submit Review</Text>
                 </TouchableOpacity>
             </View>
@@ -106,6 +153,19 @@ const Review = ({ navigation, route }) => {
     }
     return (
         <View style={styles.container}>
+            <Dialog
+                containerStyle={{ padding: 50 }}
+                visible={dialogVisible}
+                onTouchOutside={() =>{
+                    setDialogVisible(false)
+                    navigation.navigate("OrdersScreen");
+                }}
+                dialogTitle={<View style={{ paddingHorizontal: 50, paddingVertical: 10 }}><Text style={{ fontWeight: "bold", fontSize: 24 }}>Review Saved</Text></View>}
+            >
+                <DialogContent>
+                    <Text>Your feedback has been recorded. Thank you for choosing I-Kaizen!</Text>
+                </DialogContent>
+            </Dialog>
             {(isLoading && !refreshing) ? (
                 (<ActivityIndicator size="large" color="#0000ff" />)
             ) : ((refreshing || (data === "undefined")) ? (<ActivityIndicator size="large" color="#0000ff" />) :
@@ -145,7 +205,7 @@ const Review = ({ navigation, route }) => {
                                                     multiline={true}
                                                     numberOfLines={4}
                                                     value={feedback[index]}
-                                                    onChangeText={(newText) => (updateFeedback(newText,index))}
+                                                    onChangeText={(newText) => (updateFeedback(newText, index))}
                                                 />
                                             </View>
                                         </View>

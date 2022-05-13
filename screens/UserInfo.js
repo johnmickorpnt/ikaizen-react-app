@@ -52,8 +52,8 @@ const UserInfo = ({ navigation, route }) => {
     }
     const Dialog = () => {
         Alert.alert(
-            "Are you sure to logout?",
-            "Come back!",
+            "Logout",
+            "Logout your account?",
             [
                 {
                     text: "Cancel",
@@ -65,10 +65,22 @@ const UserInfo = ({ navigation, route }) => {
         );
     }
     async function logout() {
-        await SecureStore.deleteItemAsync("credentials")
-            .then(() => console.log("LOGGED OUT"))
-            .then(() => navigation.navigate("LoginScreen", { "focused": true }))
-            .catch((error) => console.log(error));
+        let response = await fetch(`${api_url}/api/logout/${credentials.token}`, {
+            method: "POST",
+            headers: {
+                'Accept': 'application/json',
+                'Authorization': `Bearer ${credentials.token}`
+            }
+        }).catch(error => console.log(error));
+
+        let data = await response.json();
+        console.log(data);
+        if (data) {
+            await SecureStore.deleteItemAsync("credentials")
+                .then(() => console.log("LOGGED OUT"))
+                .then(() => navigation.navigate("LoginScreen", { "focused": true }))
+                .catch((error) => console.log(error));
+        }
     }
     useEffect(() => {
         if (credentials === undefined)
@@ -95,12 +107,12 @@ const UserInfo = ({ navigation, route }) => {
                                 }
                             >
                                 <View style={{ flex: 1, flexDirection: "column", justifyContent: "center", flexGrow: 1, alignItems: "center", padding: 50, height: "100%" }}>
-                                    <Image
+                                    {/* <Image
                                         style={styles.logo}
                                         source={{
                                             uri: "https://i.pravatar.cc/300",
                                         }}
-                                    />
+                                    /> */}
                                     <Text style={{ fontWeight: "bold", fontSize: 16 }}>
                                         {data.name}
                                     </Text>
