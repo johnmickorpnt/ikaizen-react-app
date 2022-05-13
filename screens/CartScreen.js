@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, Button, FlatList, TouchableHighlight, TextInput, Image, TouchableOpacity, ScrollView, RefreshControl, ActivityIndicator, SafeAreaView } from 'react-native';
+import { StyleSheet, Text, View, Button, Alert, FlatList, TouchableHighlight, TextInput, Image, TouchableOpacity, ScrollView, RefreshControl, ActivityIndicator, SafeAreaView } from 'react-native';
 import React, { useState, useEffect, useLayoutEffect } from 'react';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import BouncyCheckbox from "react-native-bouncy-checkbox";
@@ -66,6 +66,7 @@ const CartScreen = ({ navigation, route }) => {
             .catch(error => console.error(error));
     }
     useEffect(() => {
+
         if (credentials === undefined)
             return retrieve();
 
@@ -97,7 +98,21 @@ const CartScreen = ({ navigation, route }) => {
                         Continue Shopping
                     </Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.button} onPress={() => { navigation.navigate("CheckoutScreen") }}>
+                <TouchableOpacity style={styles.button} onPress={() => {
+                    Alert.alert(
+                        "Confirm Checkout",
+                        "Continue to checkout with selected products?",
+                        [
+                            {
+                                text: "Cancel",
+                                onPress: () => console.log("Cancel Pressed"),
+                                style: "cancel"
+                            },
+                            { text: "OK", onPress: () => navigation.navigate("CheckoutScreen") }
+                        ]
+                    );
+                }}
+                >
                     <Text style={{ color: "white" }}>
                         Proceed to checkout
                     </Text>

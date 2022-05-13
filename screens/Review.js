@@ -8,8 +8,9 @@ const Review = ({ navigation, route }) => {
     const [data, setData] = useState();
     const [refreshing, setRefreshing] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
-    const [rating, setRating] = useState();
+    const [ids, setIds] = useState(false);
     const [ratings, setRatings] = useState([]);
+    const [feedback, setFeedback] = useState([]);
     const [credentials, setCredentials] = useState();
     const wait = (timeout) => {
         return new Promise(resolve => setTimeout(resolve, timeout));
@@ -28,7 +29,7 @@ const Review = ({ navigation, route }) => {
             fetchData();
             setRefreshing(false);
         });
-    }, []);
+    }, [data]);
 
     const fetchData = () => {
         setIsLoading(true);
@@ -55,9 +56,16 @@ const Review = ({ navigation, route }) => {
         if (ratings.length === data.length) return;
         data.forEach(element => {
             setRatings(prevArr => [...prevArr, 5])
-        })
+        });
+
+        data.forEach(element =>{
+            setFeedback(prevArr => [...prevArr, ""])
+        });
+
         setIsLoading(false);
-    }, [data, credentials]);
+        console.log(feedback);
+        
+    }, [data, credentials, feedback]);
 
     const header = () => {
         return (
@@ -76,6 +84,13 @@ const Review = ({ navigation, route }) => {
         oldRatings[index] = rating;
         setRatings(oldRatings);
     }
+
+    const updateFeedback = (newText, index) => {
+        const oldText = [...feedback];
+        oldText[index] = newText;
+        setFeedback(oldText);
+    }
+
     const footer = () => {
         return (
             <View style={{ flex: 1, flexDirection: "column", flexGrow: 1, alignItems: "center", padding: 12, width: "100%" }}>
@@ -129,6 +144,8 @@ const Review = ({ navigation, route }) => {
                                                     placeholder='What did you think about the product?'
                                                     multiline={true}
                                                     numberOfLines={4}
+                                                    value={feedback[index]}
+                                                    onChangeText={(newText) => (updateFeedback(newText,index))}
                                                 />
                                             </View>
                                         </View>

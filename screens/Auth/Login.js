@@ -76,13 +76,14 @@ const Login = ({ navigation, route }) => {
             },
             method: 'POST',
             body: formBody
-        })
+        });
         const data = await response.json();
         if (response.status !== 200) {
             setLoggingIn(false);
             setError(true);
             return setErrorMsg("- " + data.errors);
         }
+        
         setToken(data.token);
         setUser(data.email);
     }

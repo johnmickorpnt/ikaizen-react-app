@@ -31,7 +31,7 @@ const Orders = ({ navigation, route }) => {
         });
     }, []);
     const fetchData = () => {
-        if(credentials === undefined) return retrieve();
+        if (credentials === undefined) return retrieve();
         setIsLoading(true);
         fetch(`${api_url}/api/user/orders`, {
             method: 'GET', // *GET, POST, PUT, DELETE, etc.
@@ -42,7 +42,6 @@ const Orders = ({ navigation, route }) => {
         })
             .then((re) => re.json())
             .then((re) => {
-                // console.log(re)
                 setData((re.length > 0) ? (re) : (0));
             })
             .catch(error => console.error(error));
@@ -118,23 +117,23 @@ const Orders = ({ navigation, route }) => {
                                             <Text>x{item.quantity}</Text>
                                             <Text style={{ fontWeight: "bold", color: "#FF1818" }}></Text>
                                             <Text style={{ textTransform: "capitalize" }}>{item.order_status}</Text>
-                                            {(item.isReviewed === 0) ? (null) :
-                                                (temp[(index - 1 < 0) ? (index) : (index - 1)] === item.order_number) ? (
-                                                    <View style={{ marginLeft: "auto", backgroundColor: "red" }}>
-                                                        <TouchableOpacity style={styles.button}
-                                                            onPress={() => {
-                                                                navigation.navigate("ReviewsScreen", { "id": item.order_id })
-                                                                // console.log(item.order_id)
-                                                            }}
-                                                        >
-                                                            <Text style={{ color: "white", textAlign: "center", width: "100%" }}>
-                                                                Review
-                                                            </Text>
-                                                        </TouchableOpacity>
-                                                    </View>
-                                                ) : (
-                                                    null
-                                                )}
+                                            {(!item.isReviewed && item.order_status === "completed") ? (
+                                                temp[(index - 1 < 0) ? (index) : (index - 1)] === item.order_number) ? (
+                                                <View style={{ marginLeft: "auto", backgroundColor: "red" }}>
+                                                    <TouchableOpacity style={styles.button}
+                                                        onPress={() => {
+                                                            navigation.navigate("ReviewsScreen", { "id": item.order_id })
+                                                        }}
+                                                    >
+                                                        <Text style={{ color: "white", textAlign: "center", width: "100%" }}>
+                                                            Review
+                                                        </Text>
+                                                    </TouchableOpacity>
+                                                </View>
+                                            ) :
+                                                (null) : (
+                                                null
+                                            )}
                                         </View>
                                     </View>
                                 </TouchableOpacity>

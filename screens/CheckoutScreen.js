@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, Button, FlatList, TouchableHighlight, TextInput, Image, TouchableOpacity, ScrollView, RefreshControl, ActivityIndicator, SafeAreaView } from 'react-native';
+import { StyleSheet, Text, View, Button, FlatList, Alert, TouchableHighlight, TextInput, Image, TouchableOpacity, ScrollView, RefreshControl, ActivityIndicator, SafeAreaView } from 'react-native';
 import React, { useState, useEffect, useLayoutEffect } from 'react';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import SelectDropdown from 'react-native-select-dropdown';
@@ -87,7 +87,7 @@ const CheckoutScreen = ({ navigation, route }) => {
             .then((re) => re.json())
             .then((re) => {
                 // if (!re.status) return navigation.navigate("LoginScreen");
-                navigation.navigate("Profile", {screen: "UserInfo"})
+                navigation.navigate("Profile", { screen: "UserInfo" })
                 // setResponse(re.message);
                 // console.log("NICE!")
                 // setAlertShow(true);

@@ -1,7 +1,6 @@
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, View, Button, SafeAreaView } from 'react-native';
 import { useEffect, useState } from 'react';
-import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 const Tab = createBottomTabNavigator();
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -44,7 +43,7 @@ const Main = () => {
                 tabBarShowLabel: false,
                 unmountOnBlur:true
             })}>
-            <Tab.Screen name="Home" component={HomeScreen} />
+            {/* <Tab.Screen name="Home" component={HomeScreen} /> */}
             <Tab.Screen name="Shop" component={Shop} />
             <Tab.Screen name="Cart" component={CartScreen} />
             <Tab.Screen name="Profile" component={ProfileScreen} />

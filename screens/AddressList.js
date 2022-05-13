@@ -26,12 +26,11 @@ const AddressList = ({ navigation, route }) => {
     }
     const onRefresh = React.useCallback(() => {
         setRefreshing(true);
-        // setActiveAddresses([]);
         wait(1000).then(() => {
             fetchData();
             setRefreshing(false);
         });
-    }, []);
+    }, [data]);
 
     const fetchData = () => {
         if (credentials === undefined) return retrieve();
@@ -46,6 +45,7 @@ const AddressList = ({ navigation, route }) => {
         })
             .then((re) => re.json())
             .then((re) => {
+                console.log(re);
                 setData((re.length > 0) ? (re[0]) : (0));
                 setSelected(re[1]);
             })
@@ -53,6 +53,9 @@ const AddressList = ({ navigation, route }) => {
     }
 
     useEffect(() => {
+        const unsubscribe = navigation.addListener('focus', () => {
+            setData();
+        });
         if (credentials === undefined)
             return retrieve();
 
