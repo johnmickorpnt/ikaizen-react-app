@@ -1,10 +1,10 @@
-import { StyleSheet, BackHandler, LogBox, Text, View, Button, FlatList, TouchableHighlight, TextInput, Image, TouchableOpacity, ScrollView, RefreshControl, ActivityIndicator, SafeAreaView, KeyboardAvoidingView } from 'react-native';
+import { StyleSheet, LogBox, Text, View, TextInput, Image, TouchableOpacity, ActivityIndicator, SafeAreaView, BackHandler, Alert } from 'react-native';
 import React, { useState, useEffect, useLayoutEffect } from 'react';
 import Dialog, { DialogContent } from 'react-native-popup-dialog';
 import * as SecureStore from 'expo-secure-store';
 import { useIsFocused } from '@react-navigation/native';
 
-const api_url = "http://192.168.254.100:8000";
+const api_url = "https://ikaizenshop.herokuapp.com";
 
 const Login = ({ navigation, route }) => {
     // const { isFocused, onFocus, onBlur } = route.params.focused;
@@ -24,6 +24,17 @@ const Login = ({ navigation, route }) => {
     }
     LogBox.ignoreLogs(['Warning: ...']); // Ignore log notification by message
     LogBox.ignoreAllLogs();//Ignore all log notifications
+    const backAction = () => {
+        Alert.alert("Hold on!", "Are you sure you want to go back?", [
+            {
+                text: "Cancel",
+                onPress: () => null,
+                style: "cancel"
+            },
+            { text: "YES", onPress: () => BackHandler.exitApp() }
+        ]);
+        return true;
+    };
     useEffect(() => {
         if (isSuccess) return navigation.navigate("MainScreen");
         if (token !== undefined && user !== undefined) {
@@ -33,7 +44,10 @@ const Login = ({ navigation, route }) => {
         loginAttempt(email, password);
         setLoggingIn(false);
 
-        
+        BackHandler.addEventListener("hardwareBackPress", backAction);
+        return () =>
+            BackHandler.removeEventListener("hardwareBackPress", backAction);
+
     }, [loggingIn, isSuccess, error, token, user, navigation])
 
     async function save(key, value) {
@@ -83,7 +97,7 @@ const Login = ({ navigation, route }) => {
             setError(true);
             return setErrorMsg("- " + data.errors);
         }
-        
+
         setToken(data.token);
         setUser(data.email);
     }

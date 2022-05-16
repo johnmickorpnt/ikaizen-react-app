@@ -7,9 +7,9 @@ import * as SecureStore from 'expo-secure-store';
 import Login from './Auth/Login';
 import Register from './Auth/Register';
 import Main from './Main';
+const api_url = "https://ikaizenshop.herokuapp.com";
 
-
-const Auth = () => {
+const Auth = ({ navigation, route }) => {
     const [credentials, setCredentials] = useState("");
     const [loading, setIsLoading] = useState(false);
     async function retrieve() {
@@ -30,13 +30,36 @@ const Auth = () => {
             setIsLoading(true);
             return retrieve();
         }
-        if(credentials === 0) 
-        wait(500).then(() => setIsLoading(false));
-        console.log(credentials, loading);
+        if (credentials !== 0) {
+            return testLogin();
+        }
+        if (credentials === 0)
+            wait(500).then(() => setIsLoading(false));
+
         if (!loading)
             console.log(credentials, loading);
+
     }, [credentials, loading]);
 
+    const testLogin = async () => {
+        let re = await fetch(`${api_url}/api/user/`, {
+            method: 'GET', // *GET, POST, PUT, DELETE, etc.
+            headers: {
+                'Accept': 'application/json',
+                'Authorization': `Bearer ${credentials.token}`
+            },
+        })
+            .catch(e => navigation.navigate("LoginScreen"));
+        if (re.status === 401) {
+            return logout();
+        }
+    }
+    async function logout() {
+        await SecureStore.deleteItemAsync("credentials")
+            .then(() => console.log("LOGGED OUT"))
+            .then(() => setCredentials(0))
+            .catch((error) => console.log(error));
+    }
     return (
         <NavigationContainer>
             {loading && credentials.length === 0 ? (<ActivityIndicator size="large" color="#0000ff" />) :

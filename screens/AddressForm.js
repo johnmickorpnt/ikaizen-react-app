@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import * as SecureStore from 'expo-secure-store';
 import Dialog, { DialogContent } from 'react-native-popup-dialog';
-const api_url = "http://192.168.254.100:8000";
+const api_url = "https://ikaizenshop.herokuapp.com";
 
 const AddressForm = ({ navigation, route }) => {
     const [data, setData] = useState();

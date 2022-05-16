@@ -5,17 +5,18 @@ import UserInfo from './UserInfo';
 import AddressBook from './AddressBook';
 import Orders from './Orders';
 import Review from './Review';
+import CancelForm from './CancelForm';
 
 const Stack = createNativeStackNavigator();
 const ProfileScreen = ({ navigation, route }) => {
-    useEffect(() =>{
+    useEffect(() => {
         const unsubscribe = navigation.addListener('focus', () => {
             console.log("restart");
         });
         return unsubscribe;
     }, [navigation])
     return (
-        <Stack.Navigator screenOptions={{headerShown:false}}>
+        <Stack.Navigator screenOptions={{ headerShown: false }}>
             <Stack.Screen
                 name="UserInfo"
                 component={UserInfo}
@@ -24,13 +25,17 @@ const ProfileScreen = ({ navigation, route }) => {
                 name="AddressScreen"
                 component={AddressBook}
             />
-            <Stack.Screen 
+            <Stack.Screen
                 name="OrdersScreen"
                 component={Orders}
             />
-            <Stack.Screen 
+            <Stack.Screen
                 name="ReviewsScreen"
                 component={Review}
+            />
+            <Stack.Screen
+                name="CancelScreen"
+                component={CancelForm}
             />
         </Stack.Navigator>
     );

@@ -5,7 +5,7 @@ import { useIsFocused } from '@react-navigation/native';
 
 import Ionicons from '@expo/vector-icons/Ionicons';
 import * as SecureStore from 'expo-secure-store';
-const api_url = "http://192.168.254.100:8000";
+const api_url = "https://ikaizenshop.herokuapp.com";
 
 const UserInfo = ({ navigation, route }) => {
     const [data, setData] = useState();

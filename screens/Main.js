@@ -1,5 +1,5 @@
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View, Button, SafeAreaView } from 'react-native';
+import { StyleSheet, Text, View, Button, SafeAreaView, BackHandler, Alert } from 'react-native';
 import { useEffect, useState } from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 const Tab = createBottomTabNavigator();
@@ -15,8 +15,22 @@ const shopName = "Shop";
 const cartName = "Cart";
 
 const Main = () => {
-    useEffect(() =>{
-        console.log("GOOD")
+    const backAction = () => {
+        Alert.alert("Hold on!", "Are you sure you want to exit the app?", [
+            {
+                text: "Cancel",
+                onPress: () => null,
+                style: "cancel"
+            },
+            { text: "YES", onPress: () => BackHandler.exitApp() }
+        ]);
+        return true;
+    };
+    useEffect(() => {
+        BackHandler.addEventListener("hardwareBackPress", backAction);
+
+        return () =>
+            BackHandler.removeEventListener("hardwareBackPress", backAction);
     }, []);
     return (
         <Tab.Navigator
@@ -41,7 +55,7 @@ const Main = () => {
                 },
                 headerShown: false,
                 tabBarShowLabel: false,
-                unmountOnBlur:true
+                unmountOnBlur: true
             })}>
             {/* <Tab.Screen name="Home" component={HomeScreen} /> */}
             <Tab.Screen name="Shop" component={Shop} />

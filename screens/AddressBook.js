@@ -4,7 +4,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import AddressList from './AddressList';
 import AddressForm from './AddressForm';
 const Stack = createNativeStackNavigator();
-const api_url = "http://192.168.254.100:8000";
+const api_url = "https://ikaizenshop.herokuapp.com";
 
 
 const AddressBook = ({ navigation, route }) => {

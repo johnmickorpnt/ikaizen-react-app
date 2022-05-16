@@ -2,7 +2,7 @@ import { StyleSheet, Text, View, Alert, FlatList, TouchableHighlight, TextInput,
 import React, { useState, useEffect } from 'react';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import * as SecureStore from 'expo-secure-store';
-const api_url = "http://192.168.254.100:8000";
+const api_url = "https://ikaizenshop.herokuapp.com";
 
 const Orders = ({ navigation, route }) => {
     const [data, setData] = useState();
@@ -98,7 +98,6 @@ const Orders = ({ navigation, route }) => {
                 (
                     (data !== 0) ? (
                         <FlatList data={data}
-                            // keyExtractor={(item) => item.product_id + item.order_number}
                             extraData={temp}
                             renderItem={({ item, index }) => (
                                 <TouchableOpacity style={{ display: "flex", flexShrink: 1, flex: 1, maxHeight: "90%" }}
@@ -136,20 +135,7 @@ const Orders = ({ navigation, route }) => {
                                                         (item.order_status === "processing" ?
                                                             (<View style={{ marginLeft: "auto" }}>
                                                                 <TouchableOpacity style={styles.cancelBtn}
-                                                                    onPress={() => {
-                                                                        Alert.alert(
-                                                                            "Confirm cancel order",
-                                                                            "Are you sure to cancel this order?",
-                                                                            [
-                                                                                {
-                                                                                    text: "Cancel",
-                                                                                    onPress: () => console.log("Cancel Pressed"),
-                                                                                    style: "cancel"
-                                                                                },
-                                                                                { text: "OK", onPress: () => navigation.navigate("CheckoutScreen") }
-                                                                            ]
-                                                                        );
-                                                                    }}
+                                                                    onPress={() => navigation.navigate("CancelScreen", {id:item.order_id})}
                                                                 >
                                                                     <Text style={{ color: "black", textAlign: "center", width: "100%" }}>
                                                                         Cancel

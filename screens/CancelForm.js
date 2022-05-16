@@ -1,22 +1,29 @@
 import { StyleSheet, Text, View, Button, FlatList, TouchableHighlight, Dimensions, TextInput, Image, TouchableOpacity, ScrollView, RefreshControl, ActivityIndicator, SafeAreaView } from 'react-native';
 import React, { useState, useEffect } from 'react';
-import StarRating from 'react-native-star-rating';
+import SelectDropdown from 'react-native-select-dropdown'
+import Ionicons from '@expo/vector-icons/Ionicons';
 import * as SecureStore from 'expo-secure-store';
 const api_url = "https://ikaizenshop.herokuapp.com";
 import Dialog, { DialogContent } from 'react-native-popup-dialog';
 
-const Review = ({ navigation, route }) => {
+const CancelForm = ({ navigation, route }) => {
     const [data, setData] = useState();
     const [refreshing, setRefreshing] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [ids, setIds] = useState([]);
-    const [ratings, setRatings] = useState([]);
-    const [feedback, setFeedback] = useState([]);
+    const [selectedItem, setSelectedItem] = useState([]);
+    const [details, setDetails] = useState();
     const [credentials, setCredentials] = useState();
     const [order] = useState(route.params.id);
     const [errorMsg, setErrorMsg] = useState();
     const [dialogVisible, setDialogVisible] = useState(false);
     const [error, setError] = useState(false);
+    const [reasons, setReasons] =
+        useState(["Change of delivery address", "Change of Contact Number",
+            "I don't want the iteam anymore",
+            "I decided for an alternative product",
+            "Change/combine order",
+            "Duplicate order"]);
 
     const wait = (timeout) => {
         return new Promise(resolve => setTimeout(resolve, timeout));
@@ -29,6 +36,7 @@ const Review = ({ navigation, route }) => {
             console.log("ERROR:", error);
         }
     }
+
     const onRefresh = React.useCallback(() => {
         setRefreshing(true);
         wait(1000).then(() => {
@@ -40,7 +48,7 @@ const Review = ({ navigation, route }) => {
     const fetchData = () => {
         setIsLoading(true);
         if (credentials === undefined) return retrieve();
-        fetch(`${api_url}/api/user/orders/${order}/review`, {
+        fetch(`${api_url}/api/user/orders/${order}/cancel`, {
             method: 'GET', // *GET, POST, PUT, DELETE, etc.
             headers: {
                 'Accept': 'application/json',
@@ -50,47 +58,42 @@ const Review = ({ navigation, route }) => {
             .then((re) => re.json())
             .then((re) => {
                 setData((re.length > 0) ? (re[0]) : (0));
-                console.log(re[1]);
                 setIds(re[1]);
             })
             .catch(error => console.error(error));
     }
 
-    const saveReview = async () => {
+    const requestCancel = async () => {
         setIsLoading(true);
         console.log("SAVING IN");
         setError(false);
-        let t = {
-            "ratings[]": ratings,
-            "feedBack[]": feedback,
-            "ids[]": ids
-        };
-        let y = {
-            "ratings": ratings,
-            "feedBack": feedback,
-            "ids": ids
-        };
+        // let t = {
+        //     "ratings[]": ratings,
+        //     "feedBack[]": feedback,
+        //     "ids[]": ids
+        // };
+        
         var formBody = [];
 
-        for (var property in t) {
-            var encodedKey = encodeURIComponent(property);
-            var encodedValue = encodeURIComponent(t[property]);
-            formBody.push(encodedKey + "=" + encodedValue);
-        }
-        formBody = formBody.join("&");
-        let response = await fetch(`${api_url}/api/user/orders/${order}/review`, {
-            method: 'POST', // *GET, POST, PUT, DELETE, etc.
-            headers: {
-                'Accept': 'application/x-www-form-urlencoded',
-                'Content-Type': 'application/x-www-form-urlencoded',
-                'Authorization': `Bearer ${credentials.token}`
-            },
-            body: formBody
-        });
-        if (response.status === 200) {
-            setDialogVisible(true);
-        }
-        setIsLoading(false);
+        // for (var property in t) {
+        //     var encodedKey = encodeURIComponent(property);
+        //     var encodedValue = encodeURIComponent(t[property]);
+        //     formBody.push(encodedKey + "=" + encodedValue);
+        // }
+        // formBody = formBody.join("&");
+        // let response = await fetch(`${api_url}/api/user/orders/${order}/review`, {
+        //     method: 'POST', // *GET, POST, PUT, DELETE, etc.
+        //     headers: {
+        //         'Accept': 'application/x-www-form-urlencoded',
+        //         'Content-Type': 'application/x-www-form-urlencoded',
+        //         'Authorization': `Bearer ${credentials.token}`
+        //     },
+        //     body: formBody
+        // });
+        // if (response.status === 200) {
+        //     setDialogVisible(true);
+        // }
+        // setIsLoading(false);
 
     }
 
@@ -98,43 +101,24 @@ const Review = ({ navigation, route }) => {
         if (data === undefined)
             return fetchData();
 
-        if (ratings.length === data.length) return;
-        data.forEach(element => {
-            setRatings(prevArr => [...prevArr, 5])
-        });
 
-        data.forEach(element => {
-            setFeedback(prevArr => [...prevArr, ""])
-        });
 
-        if (ids.length === data.length)
-            console.log(ids);
+
         setIsLoading(false);
 
-    }, [data, credentials, ids]);
+    }, [data, credentials]);
 
     const header = () => {
         return (
             <View>
                 <Text style={{ fontSize: 23, fontWeight: "bold", textAlign: "center", marginTop: 30 }}>
-                    Review an Order
+                    Cancel order
                 </Text>
                 <Text style={{ fontSize: 16, fontWeight: "500", textAlign: "center" }}>
-                    Share your experience with others!
+                    Before we cancel your order, please let us know why.
                 </Text>
             </View>
         );
-    }
-    const updateRating = (rating, index) => {
-        const oldRatings = [...ratings];
-        oldRatings[index] = rating;
-        setRatings(oldRatings);
-    }
-
-    const updateFeedback = (newText, index) => {
-        const oldText = [...feedback];
-        oldText[index] = newText;
-        setFeedback(oldText);
     }
 
     const footer = () => {
@@ -145,8 +129,8 @@ const Review = ({ navigation, route }) => {
                     <Text>Cancel</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.button}
-                    onPress={saveReview}>
-                    <Text style={{ color: "white" }}>Submit Review</Text>
+                    onPress={requestCancel}>
+                    <Text style={{ color: "white" }}>Submit request to cancel</Text>
                 </TouchableOpacity>
             </View>
         )
@@ -156,7 +140,7 @@ const Review = ({ navigation, route }) => {
             <Dialog
                 containerStyle={{ padding: 50 }}
                 visible={dialogVisible}
-                onTouchOutside={() =>{
+                onTouchOutside={() => {
                     setDialogVisible(false)
                     navigation.navigate("OrdersScreen");
                 }}
@@ -186,26 +170,33 @@ const Review = ({ navigation, route }) => {
                                     </View>
                                     <View style={{ flex: 1, flexDirection: "row", alignItems: "center", width: "100%", justifyContent: "center" }}>
                                         <View style={{ width: "100%", flex: 1, alignItems: "center" }}>
-                                            <View style={{ display: "flex", flex: 1, flexDirection: "row", maxHeight: 45, alignItems: "center", flexShrink: 1, width: "100%", justifyContent: "space-between", paddingHorizontal: 15 }}>
-                                                <StarRating
-                                                    containerStyle={{ width: "100%", justifyContent: "center" }}
-                                                    starStyle={{ marginHorizontal: 3 }}
-                                                    disabled={false}
-                                                    maxStars={5}
-                                                    rating={ratings[index]}
-                                                    fullStarColor={'red'}
-                                                    emptyStarColor={'red'}
-                                                    selectedStar={(rating) => updateRating(rating, index)}
-                                                />
-                                            </View>
                                             <View style={{ flexShrink: 1, width: Dimensions.get('screen').width, padding: 15, justifyContent: "center", alignItems: "center" }}>
+                                                <SelectDropdown
+                                                    buttonStyle={{ borderWidth: 1, borderRadius: 5, height: 40, width: "100%" }}
+                                                    data={reasons}
+                                                    onSelect={(selectedItem, index) => {
+                                                        console.log(selectedItem, index)
+                                                    }}
+                                                    buttonTextAfterSelection={(selectedItem, index) => {
+                                                        // text represented after item is selected
+                                                        // if data array is an array of objects then return selectedItem.property to render after item is selected
+                                                        return selectedItem
+                                                    }}
+                                                    rowTextForSelection={(item, index) => {
+                                                        // text represented for each item in dropdown
+                                                        // if data array is an array of objects then return item.property to represent item in dropdown
+                                                        return item
+                                                    }}
+                                                    renderDropdownIcon={downIcon}
+                                                    defaultButtonText={"Reasons for cancelling"}
+                                                />
                                                 <TextInput
                                                     style={styles.input}
-                                                    placeholder='What did you think about the product?'
+                                                    placeholder='Please tell us why you are cancelling this order.'
                                                     multiline={true}
                                                     numberOfLines={4}
-                                                    value={feedback[index]}
-                                                    onChangeText={(newText) => (updateFeedback(newText, index))}
+                                                    value={details}
+                                                    onChangeText={(newText) => (setDetails(newText))}
                                                 />
                                             </View>
                                         </View>
@@ -224,6 +215,10 @@ const Review = ({ navigation, route }) => {
                 ))}
         </View>
     );
+}
+
+const downIcon = () => {
+    return <Ionicons name={"chevron-down-outline"} size={20} color={"black"} />
 }
 
 const styles = StyleSheet.create({
@@ -293,4 +288,4 @@ const styles = StyleSheet.create({
 });
 
 
-export default Review
+export default CancelForm;
