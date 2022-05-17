@@ -8,7 +8,7 @@ const CustomHeader = (props) => {
             <Image
                 style={styles.mainLogo}
                 source={{
-                    uri: "https://ikaizenshop.herokuapp.com/images/logo1-1.png",
+                    uri: "http://18.206.235.172/images/logo1-1.png",
                 }}
             />
             <View style={{ padding: 10, flex: 1, flexDirection: "column", justifyContent: "center" }}>

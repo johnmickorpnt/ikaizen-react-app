@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import BouncyCheckbox from "react-native-bouncy-checkbox";
 import * as SecureStore from 'expo-secure-store';
 import { SwipeListView } from 'react-native-swipe-list-view';
-const api_url = "https://ikaizenshop.herokuapp.com";
+const api_url = "http://18.206.235.172";
 import Ionicons from '@expo/vector-icons/Ionicons';
 
 const AddressList = ({ navigation, route }) => {
@@ -86,13 +86,13 @@ const AddressList = ({ navigation, route }) => {
     }
     const header = () => {
         return (
-            <View style={{ paddingTop: 32, display: "flex", flexDirection: "row", justifyContent: "center", alignItems: "center", margin:5 }}>
+            <View style={{ paddingTop: 32, display: "flex", flexDirection: "row", justifyContent: "center", alignItems: "center", margin: 5 }}>
                 <Text style={{ fontWeight: "bold", fontSize: 24, textAlign: "center" }}>
-                    Address Book 
+                    Address Book
                 </Text>
-                <TouchableOpacity style={{ marginLeft: "auto", display: "flex", flexDirection: "row", alignItems: "center", backgroundColor:"red", padding:8, borderRadius:5}}
-                onPress={() => navigation.navigate("AddressForm", {"header":"Add an Address"})}>
-                    <Text style={{fontSize:14, color:"white"}}>
+                <TouchableOpacity style={{ marginLeft: "auto", display: "flex", flexDirection: "row", alignItems: "center", backgroundColor: "red", padding: 8, borderRadius: 5 }}
+                    onPress={() => navigation.navigate("AddressForm", { "header": "Add an Address" })}>
+                    <Text style={{ fontSize: 14, color: "white" }}>
                         Add an Address
                     </Text>
                 </TouchableOpacity>
@@ -102,10 +102,11 @@ const AddressList = ({ navigation, route }) => {
     const footer = () => {
         return (
             <View style={{ padding: 8, display: "flex", flexDirection: "row", justifyContent: "center" }}>
-                <TouchableOpacity style={styles.button}
+                {data !== undefined && data.length > 0 ? (<TouchableOpacity style={styles.button}
                     onPress={() => save()}>
                     <Text style={{ color: "white" }}>Save as default address</Text>
-                </TouchableOpacity>
+                </TouchableOpacity>) : (null)}
+
             </View>
         );
     }
@@ -124,7 +125,7 @@ const AddressList = ({ navigation, route }) => {
                                 keyExtractor={(item) => item.id}
                                 renderItem={({ item, index }) => (
                                     <TouchableOpacity style={styles.addressRow}
-                                        onPress={() => navigation.navigate("AddressForm", { id: item.id, "header":"Edit an Address" })}
+                                        onPress={() => navigation.navigate("AddressForm", { id: item.id, "header": "Edit an Address" })}
                                         activeOpacity={1}
                                     >
                                         <View style={{ flex: 1, flexDirection: "row" }}>

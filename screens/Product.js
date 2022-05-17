@@ -1,11 +1,13 @@
-import { StyleSheet, Text, View, Button, KeyboardAvoidingView, FlatList, TouchableHighlight, TextInput, Image, TouchableOpacity, ScrollView, RefreshControl, ActivityIndicator, SafeAreaView } from 'react-native';
+import { StyleSheet, Text, View, Button, useWindowDimensions, FlatList, TouchableHighlight, TextInput, Image, TouchableOpacity, ScrollView, RefreshControl, ActivityIndicator, SafeAreaView } from 'react-native';
 import React, { useState, useEffect } from 'react';
 import StarRating from 'react-native-star-rating';
 import * as SecureStore from 'expo-secure-store';
 import FadeInOut from 'react-native-fade-in-out';
-const api_url = "https://ikaizenshop.herokuapp.com";
+import RenderHtml from 'react-native-render-html';
+const api_url = "http://18.206.235.172";
 
 const Product = ({ navigation, route }) => {
+    const { width } = useWindowDimensions();
     const [data, setData] = useState();
     const [isLoading, setIsLoading] = useState(false);
     const [refreshing, setRefreshing] = useState(false);
@@ -19,6 +21,7 @@ const Product = ({ navigation, route }) => {
     const [alertShow, setAlertShow] = useState(false);
     const [qty, setQty] = useState(1);
     const [enabled, setEnabled] = useState(true);
+    const [desc, setDesc] = useState();
     const wait = (timeout) => {
         return new Promise(resolve => setTimeout(resolve, timeout));
     }
@@ -93,24 +96,10 @@ const Product = ({ navigation, route }) => {
         if (data === undefined)
             return fetchData(route.params.id);
 
-        if (headers.length === 0) {
-            for (const [key, val] of Object.entries(JSON.parse(data.description)))
-                setHeaders(prevArray => [...prevArray, key]);
-            return;
-        }
-        console.log(headers)
-        if (cols.length === 0) {
-            for (const [key, val] of Object.entries(JSON.parse(data.description))) {
-                setCols(prevArray => [...prevArray, val]);
-            }
-            return;
-        }
-        if (subHeaders.length === 0 && cols.length !== 0) {
-            cols.forEach((element, index) => {
-                if (typeof element !== "object") return console.log(element);
-                setSubHeaders(prevArray => [...prevArray, t(element)]);
-            });
-        }
+        console.log(data.description)
+        setDesc({
+            html: `${data.description}`
+        })
 
         if (credentials === undefined)
             return retrieve();
@@ -155,7 +144,7 @@ const Product = ({ navigation, route }) => {
     return (
         <SafeAreaView style={styles.container}>
             {
-                (data !== undefined)
+                (data !== undefined && desc !== undefined)
                     ?
                     (
                         <View>
@@ -171,7 +160,7 @@ const Product = ({ navigation, route }) => {
                                 <Image
                                     style={styles.logo}
                                     source={{
-                                        uri: api_url + "/storage/images/" + data.prod_image,
+                                        uri: api_url + "/images/productImgs/" + data.prod_image,
                                     }}
                                 />
                                 <View style={{ flex: 1, flexDirection: "column" }}>
@@ -199,11 +188,14 @@ const Product = ({ navigation, route }) => {
                                             )
                                     }
                                     <View>
-                                        {(cols !== null && cols.length !== 0) ? (
-                                            headers.map((value, index, key) => {
-                                                return ((typeof cols === "object") ? (comp(value, index, key)) : (cols))
-                                            })
-                                        ) : (null)}
+                                        <View style={{paddingHorizontal:10}}>
+                                            <RenderHtml
+                                                contentWidth={width}
+                                                source={desc}
+                                                style
+                                            />
+                                        </View>
+
                                         <View style={{ marginVertical: 5, paddingEnd: 5 }}>
                                             {(reviews.length <= 0) ?
                                                 (

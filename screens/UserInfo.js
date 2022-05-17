@@ -5,7 +5,7 @@ import { useIsFocused } from '@react-navigation/native';
 
 import Ionicons from '@expo/vector-icons/Ionicons';
 import * as SecureStore from 'expo-secure-store';
-const api_url = "https://ikaizenshop.herokuapp.com";
+const api_url = "http://18.206.235.172";
 
 const UserInfo = ({ navigation, route }) => {
     const [data, setData] = useState();
@@ -74,13 +74,14 @@ const UserInfo = ({ navigation, route }) => {
         }).catch(error => console.log(error));
 
         let data = await response.json();
+        setCredentials();
         console.log(data);
         if (data) {
             await SecureStore.deleteItemAsync("credentials")
                 .then(() => console.log("LOGGED OUT"))
-                .then(() => navigation.navigate("LoginScreen", { "focused": true }))
                 .catch((error) => console.log(error));
         }
+        navigation.navigate("LoginScreen");
     }
     useEffect(() => {
         if (credentials === undefined)

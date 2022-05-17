@@ -5,7 +5,7 @@ const Stack = createNativeStackNavigator();
 import CartScreen from './CartScreen';
 import ShopScreen from './ShopScreen';
 import CheckoutScreen from './CheckoutScreen'
-const api_url = "https://ikaizenshop.herokuapp.com";
+const api_url = "http://18.206.235.172";
 
 const Cart = ({ navigation, route }) => {
     return (

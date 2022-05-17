@@ -4,7 +4,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import SelectDropdown from 'react-native-select-dropdown'
 import * as SecureStore from 'expo-secure-store';
 import FadeInOut from 'react-native-fade-in-out';
-const api_url = "https://ikaizenshop.herokuapp.com";
+const api_url = "http://18.206.235.172";
 const wait = (timeout) => {
     return new Promise(resolve => setTimeout(resolve, timeout));
 }
@@ -44,6 +44,7 @@ const ShopScreen = ({ navigation, route }) => {
         // Update the document title using the browser API
         if (credentials === undefined)
             return retrieve();
+        console.log(credentials);
         if (feed === undefined)
             return fetchData();
         if (alertShow) {
@@ -133,7 +134,7 @@ const ShopScreen = ({ navigation, route }) => {
                 <Image
                     style={styles.mainLogo}
                     source={{
-                        uri: "https://ikaizenshop.herokuapp.com/images/logo1-1.png",
+                        uri: "http://18.206.235.172/images/logo1-1.png",
                     }}
                 />
                 <View style={{ padding: 10, flex: 1, flexDirection: "column", justifyContent: "center", alignItems: "center" }}>
@@ -148,7 +149,7 @@ const ShopScreen = ({ navigation, route }) => {
                         />
                         <Ionicons name={"search-outline"} size={20} color={"black"} style={{ position: "absolute", right: 10, top: 15 }} />
                     </View>
-                    <View style={{ flex: 1, display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "center", marginTop: 12 }}>
+                    {/* <View style={{ flex: 1, display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "center", marginTop: 12 }}>
                         <View style={{ width: "90%" }}>
                             <SelectDropdown
                                 buttonStyle={{ borderWidth: 1, borderRadius: 5, height: 40, width: "100%" }}
@@ -173,7 +174,7 @@ const ShopScreen = ({ navigation, route }) => {
                         <TouchableOpacity style={{ backgroundColor: "rgba(200,0,0,0.8)", height: 40, flex: 1, alignItems: "center", justifyContent: "center", marginLeft: 5, borderRadius: 5 }}>
                             <Ionicons name={"checkmark"} color={"white"} size={18} />
                         </TouchableOpacity>
-                    </View>
+                    </View> */}
                     
                 </View>
             </View >
@@ -201,7 +202,7 @@ const ShopScreen = ({ navigation, route }) => {
                                     <Image
                                         style={styles.logo}
                                         source={{
-                                            uri: api_url + "/storage/images/" + item.prod_image,
+                                            uri: api_url + "/images/productImgs/" + item.prod_image,
                                         }}
                                     />
                                     <Text style={{ textAlign: "center" }} numberOfLines={2}>{item.name}</Text>

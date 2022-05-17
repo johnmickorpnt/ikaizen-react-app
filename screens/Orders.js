@@ -2,7 +2,7 @@ import { StyleSheet, Text, View, Alert, FlatList, TouchableHighlight, TextInput,
 import React, { useState, useEffect } from 'react';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import * as SecureStore from 'expo-secure-store';
-const api_url = "https://ikaizenshop.herokuapp.com";
+const api_url = "http://18.206.235.172";
 
 const Orders = ({ navigation, route }) => {
     const [data, setData] = useState();
@@ -108,7 +108,7 @@ const Orders = ({ navigation, route }) => {
                                             <Image
                                                 style={styles.logo}
                                                 source={{
-                                                    uri: api_url + "/storage/images/" + item.prod_image,
+                                                    uri: api_url + "/images/productImgs/" + item.prod_image,
                                                 }}
                                             />
                                         </View>

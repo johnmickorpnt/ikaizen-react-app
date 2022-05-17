@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useFonts } from '@expo-google-fonts/inter';
 import CustomHeader from '../components/CustomHeader';
 
-const api_url = "https://ikaizenshop.herokuapp.com";
+const api_url = "http://18.206.235.172";
 const HomeScreen = ({ navigation }) => {
     const [feed, setFeed] = useState();
 

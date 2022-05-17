@@ -8,7 +8,7 @@ export default function App() {
   const [user, setUser] = useState();
   async function retrieve() {
     let result;
-    result = await SecureStore.getItemAsync("email");
+    result = await SecureStore.getItemAsync("credentials");
     return (result) ? (result) : (undefined);
   }
 

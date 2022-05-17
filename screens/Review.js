@@ -2,7 +2,7 @@ import { StyleSheet, Text, View, Button, FlatList, TouchableHighlight, Dimension
 import React, { useState, useEffect } from 'react';
 import StarRating from 'react-native-star-rating';
 import * as SecureStore from 'expo-secure-store';
-const api_url = "https://ikaizenshop.herokuapp.com";
+const api_url = "http://18.206.235.172";
 import Dialog, { DialogContent } from 'react-native-popup-dialog';
 
 const Review = ({ navigation, route }) => {

@@ -2,14 +2,10 @@ import { StyleSheet, LogBox, Text, View, TextInput, Image, TouchableOpacity, Act
 import React, { useState, useEffect, useLayoutEffect } from 'react';
 import Dialog, { DialogContent } from 'react-native-popup-dialog';
 import * as SecureStore from 'expo-secure-store';
-import { useIsFocused } from '@react-navigation/native';
 
-const api_url = "https://ikaizenshop.herokuapp.com";
+const api_url = "http://18.206.235.172";
 
 const Login = ({ navigation, route }) => {
-    // const { isFocused, onFocus, onBlur } = route.params.focused;
-    // const [focused, setFocused] = useState(false);
-
     const [email, setEmail] = useState();
     const [password, setPassword] = useState();
     const [loggingIn, setLoggingIn] = useState(false);
@@ -18,6 +14,7 @@ const Login = ({ navigation, route }) => {
     const [error, setError] = useState(false);
     const [isSuccess, setIsSuccess] = useState(false);
     const [errorMsg, setErrorMsg] = useState(false);
+    const [credentials, setCredentials] = useState();
     const [dialogVisible, setDialogVisible] = useState(false);
     const wait = (timeout) => {
         return new Promise(resolve => setTimeout(resolve, timeout));
@@ -35,7 +32,20 @@ const Login = ({ navigation, route }) => {
         ]);
         return true;
     };
+    async function clear() {
+        await SecureStore.deleteItemAsync("credentials")
+            .then(() => console.log("LOGGED OUT"))
+            .finally(() => navigation.navigate("LoginScreen", { "focused": true }))
+            .catch((error) => console.log(error));
+    }
     useEffect(() => {
+        const unsubscribe = navigation.addListener('focus', () => {
+            console.log('Refreshed!');
+            clear();
+            setEmail();
+            setPassword();
+        });
+        console.log(credentials)
         if (isSuccess) return navigation.navigate("MainScreen");
         if (token !== undefined && user !== undefined) {
             return store();
@@ -47,7 +57,12 @@ const Login = ({ navigation, route }) => {
         BackHandler.addEventListener("hardwareBackPress", backAction);
         return () =>
             BackHandler.removeEventListener("hardwareBackPress", backAction);
-
+            
+        return (unsubscribe) => {
+            // Clear setInterval in case of screen unmount
+            // Unsubscribe for the focus Listener
+            unsubscribe;
+        };
     }, [loggingIn, isSuccess, error, token, user, navigation])
 
     async function save(key, value) {
@@ -108,6 +123,7 @@ const Login = ({ navigation, route }) => {
         })
         await save("credentials", credentials)
             .catch(error => console.log(error));
+
         setIsSuccess(true);
     }
 
@@ -173,10 +189,6 @@ const Login = ({ navigation, route }) => {
                             Don't have an account? Register now!
                         </Text>
                     </TouchableOpacity>
-                    {/* <TouchableOpacity
-                        style={styles.plainBtn}>
-                        <Text style={{ color: "black", textAlign: "center" }}>Forgot password?</Text>
-                    </TouchableOpacity> */}
                 </View>
             </View>
         </SafeAreaView>

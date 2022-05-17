@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import SelectDropdown from 'react-native-select-dropdown'
 import Ionicons from '@expo/vector-icons/Ionicons';
 import * as SecureStore from 'expo-secure-store';
-const api_url = "https://ikaizenshop.herokuapp.com";
+const api_url = "http://18.206.235.172";
 import Dialog, { DialogContent } from 'react-native-popup-dialog';
 
 const CancelForm = ({ navigation, route }) => {

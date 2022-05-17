@@ -4,13 +4,15 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import BouncyCheckbox from "react-native-bouncy-checkbox";
 import * as SecureStore from 'expo-secure-store';
 import { SwipeListView } from 'react-native-swipe-list-view';
-const api_url = "https://ikaizenshop.herokuapp.com";
+const api_url = "http://18.206.235.172";
 
 const CartScreen = ({ navigation, route }) => {
     const [data, setData] = useState();
     const [refreshing, setRefreshing] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [activeProd, setActive] = useState([]);
+    const [error, setError] = useState(false);
+    const [errorMsg, setErrorMsg] = useState(false);
     const [credentials, setCredentials] = useState();
     async function retrieve() {
         let result = await SecureStore.getItemAsync("credentials")
@@ -32,8 +34,9 @@ const CartScreen = ({ navigation, route }) => {
         });
     }, [credentials]);
     const fetchData = () => {
-        console.log(credentials.token)
         setIsLoading(true);
+        if (credentials === null) return retrieve();
+
         fetch(api_url + `/api/cart/`, {
             method: 'GET', // *GET, POST, PUT, DELETE, etc.
             headers: {
@@ -69,6 +72,9 @@ const CartScreen = ({ navigation, route }) => {
 
         if (credentials === undefined)
             return retrieve();
+
+        if (credentials === undefined)
+            navigation.navigate("LoginScreen");
 
         if (data === undefined)
             return fetchData();
@@ -126,6 +132,7 @@ const CartScreen = ({ navigation, route }) => {
         console.log(id)
         setActive([]);
         setIsLoading(true);
+        if (credentials.token === undefined) return navigation.navigate("LoginScreen");
         fetch(api_url + `/api/cart/active/${id}`, {
             method: 'POST', // *GET, POST, PUT, DELETE, etc.
             headers: {
@@ -146,6 +153,39 @@ const CartScreen = ({ navigation, route }) => {
         velocityThreshold: 0.3,
         directionalOffsetThreshold: 80
     };
+    const reduceQty = (data) => {
+        let id = data.item.product_id;
+        fetch(`${api_url}/api/cart/subtract/${id}`, {
+            method: 'PATCH', // *GET, POST, PUT, DELETE, etc.
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${credentials.token}`
+            },
+        })
+            .then((re) => re.json())
+            .then((re) => {
+                console.log(re);
+                setData(re);
+            })
+            .catch(error => console.error(error));
+    }
+
+    const addQty = (data) => {
+        let id = data.item.product_id;
+        fetch(`${api_url}/api/cart/add/${id}`, {
+            method: 'PATCH', // *GET, POST, PUT, DELETE, etc.
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${credentials.token}`
+            },
+        })
+            .then((re) => re.json())
+            .then((re) => {
+                console.log(re);
+                setData(re);
+            })
+            .catch(error => console.error(error));
+    }
     return (
         <View style={styles.container}>
             {(isLoading && !refreshing) ? (
@@ -165,7 +205,7 @@ const CartScreen = ({ navigation, route }) => {
                                             <Image
                                                 style={styles.logo}
                                                 source={{
-                                                    uri: api_url + "/storage/images/" + item.prod_image,
+                                                    uri: api_url + "/images/productImgs/" + item.prod_image,
                                                 }}
                                             />
                                         </View>
@@ -216,16 +256,30 @@ const CartScreen = ({ navigation, route }) => {
                                 <View style={{
                                     display: "flex", flexDirection: "row", margin: 5, justifyContent: "center", alignItems: "center", width: "100%"
                                 }}>
-                                    <TouchableOpacity style={{ width: "25%", height: "100%", display: "flex", flexDirection: "row", alignItems: "center", marginHorizontal: 1 }}>
+                                    <TouchableOpacity style={{ width: "25%", height: "100%", display: "flex", flexDirection: "row", alignItems: "center", marginHorizontal: 1 }} onPress={() => reduceQty(data)}>
                                         <Ionicons name={"remove"} size={30} color={"black"} />
                                     </TouchableOpacity>
-                                    <TextInput placeholder='QTY' style={{ padding: 12, borderWidth: 1, borderRadius: 5, width: "50%", height: "100%" }} keyboardType={"numeric"} />
+                                    {/* <TextInput placeholder='QTY' style={{ padding: 12, borderWidth: 1, borderRadius: 5, width: "50%", height: "100%" }} keyboardType={"numeric"} value={data.item.quantity}/> */}
                                     <TouchableOpacity style={{ width: "25%", height: "100%", display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "center", marginHorizontal: 1 }}>
-                                        <Ionicons name={"add"} size={30} color={"red"} />
+                                        <Ionicons name={"add"} size={30} color={"red"} onPress={() => addQty(data)} />
                                     </TouchableOpacity>
                                 </View>
                                 <View style={{ width: "100%", }}>
-                                    <TouchableOpacity style={{ flexGrow: 1, display: "flex", justifyContent: "center", alignItems: "center", padding: 5 }} onPress={() => deleteProduct(data)}>
+                                    <TouchableOpacity style={{ flexGrow: 1, display: "flex", justifyContent: "center", alignItems: "center", padding: 5 }} onPress={() => {
+                                        Alert.alert(
+                                            "Confirm Checkout",
+                                            "Are you sure to remove this item to your cart??",
+                                            [
+                                                {
+                                                    text: "Cancel",
+                                                    onPress: () => console.log("Cancel Pressed"),
+                                                    style: "cancel"
+                                                },
+                                                { text: "OK", onPress: () => deleteProduct(data) }
+                                            ]
+                                        );
+                                    }
+                                    }>
                                         <Ionicons name={"trash"} size={40} color={"red"} />
                                     </TouchableOpacity>
                                 </View>
@@ -233,8 +287,8 @@ const CartScreen = ({ navigation, route }) => {
                         </View>
                     )}
                     disableRightSwipe={true}
-                    leftOpenValue={75}
-                    rightOpenValue={-170}
+                    leftOpenValue={300}
+                    rightOpenValue={-110}
                     ItemSeparatorComponent={separator}
                     ListFooterComponent={footer(navigation)}
                     // ListHeaderComponent={header}
