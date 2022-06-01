@@ -182,6 +182,7 @@ const AddressList = ({ navigation, route }) => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
+        backgroundColor: "#D1D1D1",
     },
     scrollView: {
         flexGrow: 1

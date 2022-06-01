@@ -292,6 +292,7 @@ const styles = StyleSheet.create({
         textAlign: "center", color: "black", fontSize: 16
     },
     container: {
+        backgroundColor: "#D1D1D1",
         flex: 1,
     },
     scrollView: {

@@ -145,6 +145,7 @@ const UserInfo = ({ navigation, route }) => {
 
 const styles = StyleSheet.create({
     container: {
+        backgroundColor: "#D1D1D1",
         flex: 1,
     },
     scrollView: {

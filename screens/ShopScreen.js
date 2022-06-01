@@ -253,7 +253,8 @@ const styles = StyleSheet.create({
         paddingHorizontal: 5,
         flex: 1,
         justifyContent: "center",
-        alignItems: "center"
+        alignItems: "center",
+        backgroundColor: "#D1D1D1",
     },
     productItem: {
         flex: 1,
@@ -291,7 +292,7 @@ const styles = StyleSheet.create({
         borderRadius: 5
     },
     mainLogo: {
-        backgroundColor: "#FFC300",
+        backgroundColor: "#FF1818",
         marginVertical: 15,
         width: "100%",
         height: 100,
