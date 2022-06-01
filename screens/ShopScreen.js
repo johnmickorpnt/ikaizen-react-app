@@ -4,7 +4,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import SelectDropdown from 'react-native-select-dropdown'
 import * as SecureStore from 'expo-secure-store';
 import FadeInOut from 'react-native-fade-in-out';
-const api_url = "http://18.206.235.172";
+const api_url = "http://13.229.234.249";
 const wait = (timeout) => {
     return new Promise(resolve => setTimeout(resolve, timeout));
 }
@@ -134,7 +134,7 @@ const ShopScreen = ({ navigation, route }) => {
                 <Image
                     style={styles.mainLogo}
                     source={{
-                        uri: "http://18.206.235.172/images/logo1-1.png",
+                        uri: "http://13.229.234.249/images/logo1-1.png",
                     }}
                 />
                 <View style={{ padding: 10, flex: 1, flexDirection: "column", justifyContent: "center", alignItems: "center" }}>

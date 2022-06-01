@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import BouncyCheckbox from "react-native-bouncy-checkbox";
 import * as SecureStore from 'expo-secure-store';
 import { SwipeListView } from 'react-native-swipe-list-view';
-const api_url = "http://18.206.235.172";
+const api_url = "http://13.229.234.249";
 import Ionicons from '@expo/vector-icons/Ionicons';
 
 const AddressList = ({ navigation, route }) => {

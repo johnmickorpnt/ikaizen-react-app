@@ -5,7 +5,7 @@ import { Table, TableWrapper, Row, Rows, Col, Cols, Cell } from 'react-native-ta
 import Ionicons from '@expo/vector-icons/Ionicons';
 import BouncyCheckbox from "react-native-bouncy-checkbox";
 
-const api_url = "http://18.206.235.172";
+const api_url = "http://13.229.234.249";
 
 const Register = ({ navigation, route }) => {
     const [email, setEmail] = useState();
@@ -106,7 +106,7 @@ const Register = ({ navigation, route }) => {
                 <Image
                     style={styles.mainLogo}
                     source={{
-                        uri: "http://18.206.235.172/images/logo1-1-dark.png",
+                        uri: "http://13.229.234.249/images/logo1-1-dark.png",
                     }}
                 />
             </View>

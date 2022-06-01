@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import * as SecureStore from 'expo-secure-store';
 import Dialog, { DialogContent } from 'react-native-popup-dialog';
-const api_url = "http://18.206.235.172";
+const api_url = "http://13.229.234.249";
 
 const AddressForm = ({ navigation, route }) => {
     const [data, setData] = useState();

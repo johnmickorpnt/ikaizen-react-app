@@ -4,7 +4,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import AddressList from './AddressList';
 import AddressForm from './AddressForm';
 const Stack = createNativeStackNavigator();
-const api_url = "http://18.206.235.172";
+const api_url = "http://13.229.234.249";
 
 
 const AddressBook = ({ navigation, route }) => {

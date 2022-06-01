@@ -5,7 +5,7 @@ const Stack = createNativeStackNavigator();
 import CartScreen from './CartScreen';
 import ShopScreen from './ShopScreen';
 import CheckoutScreen from './CheckoutScreen'
-const api_url = "http://18.206.235.172";
+const api_url = "http://13.229.234.249";
 
 const Cart = ({ navigation, route }) => {
     return (

@@ -4,7 +4,7 @@ import StarRating from 'react-native-star-rating';
 import * as SecureStore from 'expo-secure-store';
 import FadeInOut from 'react-native-fade-in-out';
 import RenderHtml from 'react-native-render-html';
-const api_url = "http://18.206.235.172";
+const api_url = "http://13.229.234.249";
 
 const Product = ({ navigation, route }) => {
     const { width } = useWindowDimensions();
@@ -208,7 +208,7 @@ const Product = ({ navigation, route }) => {
                                                         return (
                                                             <View style={{ display: "flex", flex: 1, flexDirection: "row", alignItems: "flex-start", marginVertical: 5 }} key={i}>
                                                                 <View style={{ width: "25%", paddingHorizontal: 10 }}>
-                                                                    <Text style={{ fontSize: 14, marginTop: 3, fontWeight: "bold" }}>{replaceAll(replaceAll(replaceAll(replaceAll(replaceAll(v.user.name, "Dr.", ""), "Prof.", ""), "Mrs.", ""), "Ms.", ""), "Mr.", "").substr(0, v.user.name.indexOf(" ") + 2).trim()}.</Text>
+                                                                    <Text style={{ fontSize: 14, marginTop: 3, fontWeight: "bold" }}>{v.user.first_name + " " + v.user.last_name.substr(0, v.user.last_name.indexOf(" ") + 2).trim()}.</Text>
                                                                 </View>
                                                                 <View style={{ flexShrink: 1, paddingHorizontal: 15, width: "100%", display: "flex", justifyContent: "flex-start" }}>
                                                                     <StarRating

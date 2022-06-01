@@ -2,7 +2,7 @@ import { StyleSheet, Text, View, Alert, FlatList, TouchableHighlight, TextInput,
 import React, { useState, useEffect } from 'react';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import * as SecureStore from 'expo-secure-store';
-const api_url = "http://18.206.235.172";
+const api_url = "http://13.229.234.249";
 
 const Orders = ({ navigation, route }) => {
     const [data, setData] = useState();

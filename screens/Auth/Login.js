@@ -3,7 +3,7 @@ import React, { useState, useEffect, useLayoutEffect } from 'react';
 import Dialog, { DialogContent } from 'react-native-popup-dialog';
 import * as SecureStore from 'expo-secure-store';
 
-const api_url = "http://18.206.235.172";
+const api_url = "http://13.229.234.249";
 
 const Login = ({ navigation, route }) => {
     const [email, setEmail] = useState();

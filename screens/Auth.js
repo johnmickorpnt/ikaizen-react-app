@@ -7,7 +7,7 @@ import * as SecureStore from 'expo-secure-store';
 import Login from './Auth/Login';
 import Register from './Auth/Register';
 import Main from './Main';
-const api_url = "http://18.206.235.172";
+const api_url = "http://13.229.234.249";
 
 const Auth = ({ navigation, route }) => {
     const [credentials, setCredentials] = useState("");
